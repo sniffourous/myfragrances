@@ -11,7 +11,7 @@
             margin: 0; 
             background: #0a0a0a; 
             color: #e0e0e0;
-            line-height: 1.5;
+            line-height: 1.6;
         }
         
         header {
@@ -73,15 +73,15 @@
             background: #111; 
             display: flex; 
             flex-wrap: wrap; 
-            gap: 12px; 
+            gap: 10px; 
             justify-content: center; 
             align-items: center;
             border-bottom: 1px solid #333;
         }
 
         input, select, button { 
-            padding: 12px 16px; 
-            font-size: 16px; 
+            padding: 10px 14px; 
+            font-size: 15px; 
             border-radius: 8px; 
             background: #1f1f1f;
             color: #e0e0e0;
@@ -95,6 +95,9 @@
             cursor: pointer;
             font-weight: bold;
         }
+
+        .startover-btn { background: #d97706 !important; }
+        .export-btn { background: #15803d !important; }
 
         .table-wrapper { 
             padding: 0 20px 20px; 
@@ -122,7 +125,7 @@
         tr:hover { background: #1f2a3a; }
 
         .notes { 
-            min-width: 450px; 
+            min-width: 420px; 
             white-space: normal !important; 
         }
 
@@ -132,6 +135,12 @@
             color: #888;
             font-size: 0.95rem;
             background: #111;
+        }
+
+        @media (max-width: 768px) {
+            table { min-width: 1100px; }
+            .notes { min-width: 280px; }
+            .controls { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -162,6 +171,8 @@
             <option value="Hot">Hot</option>
             <option value="Cold">Cold</option>
             <option value="Any">Any</option>
+            <option value="HotAny">Hot + Any</option>
+            <option value="ColdAny">Cold + Any</option>
         </select>
         
         <button onclick="sortTable(0)">House</button>
@@ -279,7 +290,13 @@
             const filtered = fragrances.filter(f => {
                 const matchSearch = !term || Object.values(f).some(v => v && String(v).toLowerCase().includes(term));
                 let matchSeason = true;
-                if (seasonFilter) matchSeason = f.Seasons === seasonFilter;
+                if (seasonFilter) {
+                    if (seasonFilter === "Hot") matchSeason = f.Seasons === "Hot";
+                    else if (seasonFilter === "Cold") matchSeason = f.Seasons === "Cold";
+                    else if (seasonFilter === "Any") matchSeason = f.Seasons === "Any";
+                    else if (seasonFilter === "HotAny") matchSeason = (f.Seasons === "Hot" || f.Seasons === "Any");
+                    else if (seasonFilter === "ColdAny") matchSeason = (f.Seasons === "Cold" || f.Seasons === "Any");
+                }
                 const matchGenre = currentGenres.size === 0 || currentGenres.has(f.Genre);
                 return matchSearch && matchSeason && matchGenre;
             });
