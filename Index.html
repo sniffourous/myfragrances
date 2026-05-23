@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Fragrance Collection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            background: #0a0a0a; 
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            color: white;
+            padding: 1.8rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+        h1 { margin: 0; font-size: 2.2rem; }
+
+        /* Hamburger Menu */
+        .nav {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .hamburger span {
+            width: 28px;
+            height: 3px;
+            background: #60a5fa;
+            margin: 4px 0;
+            transition: 0.3s;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 65px;
+            left: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 0;
+            min-width: 180px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #e0e0e0;
+            text-decoration: none;
+        }
+        .menu a:hover {
+            background: #0066cc;
+            color: white;
+        }
+        .menu.active { display: block; }
+
+        .controls { 
+            padding: 24px 20px 20px; 
+            background: #111; 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            justify-content: center; 
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        input, select, button { 
+            padding: 11px 16px; 
+            font-size: 15px; 
+            border-radius: 8px; 
+            background: #1f1f1f;
+            color: #e0e0e0;
+            border: 1px solid #444;
+        }
+
+        button { 
+            background: #0066cc; 
+            color: white; 
+            border: none; 
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .startover-btn { background: #d97706 !important; }
+        .export-btn { background: #15803d !important; }
+
+        .table-wrapper { 
+            padding: 0 20px 20px; 
+            overflow-x: auto; 
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+        table { 
+            min-width: 1450px; 
+            border-collapse: collapse; 
+            background: #111; 
+            width: 100%;
+        }
+        th, td { 
+            padding: 12px 10px; 
+            border-bottom: 1px solid #333;
+        }
+        th { 
+            background: #1a1a1a; 
+            color: #fff; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
+        }
+        tr:hover { background: #1f2a3a; }
+
+        .notes { 
+            min-width: 420px; 
+            white-space: normal !important; 
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #888;
+            font-size: 0.95rem;
+            background: #111;
+        }
+
+        @media (max-width: 768px) {
+            table { min-width: 1100px; }
+            .notes { min-width: 280px; }
+            .controls { flex-direction: column; align-items: stretch; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>My Fragrance Collection</h1>
+        <div class="nav">
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="menu" id="menu">
+                <a href="index.html">Home</a>
+                <a href="layers.html">Layers</a>
+                <a href="nowwearing.html">Now Wearing</a>
+                <a href="top2.html">Top Fragrances</a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="controls">
+        <input type="text" id="search" placeholder="Search House, Name, Notes..." style="flex:1; min-width:260px;" onkeyup="filterTable()">
+        <div id="genre-filters"></div>
+        
+        <select id="season-filter" onchange="filterTable()">
+            <option value="">All Seasons</option>
+            <option value="Hot">Hot</option>
+            <option value="Cold">Cold</option>
+            <option value="Any">Any</option>
+            <option value="HotAny">Hot + Any</option>
+            <option value="ColdAny">Cold + Any</option>
+        </select>
+        
+        <button onclick="sortTable(0)">House</button>
+        <button onclick="sortTable(1)">Name</button>
+        <button onclick="sortTable(2)">Rating</button>
+        <button onclick="sortTable(3)">Hours</button>
+        <button onclick="sortTable(4)">Silliage</button>
+        <button onclick="sortTable(7)">Parfumo</button>
+
+        <button onclick="startOver()" class="startover-btn">Start Over</button>
+        <button onclick="exportToCSV()" class="export-btn">Export To CSV</button>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="fragrance-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">House</th>
+                    <th onclick="sortTable(1)">Name</th>
+                    <th onclick="sortTable(2)">Rating</th>
+                    <th onclick="sortTable(3)">Hours</th>
+                    <th onclick="sortTable(4)">Silliage</th>
+                    <th onclick="sortTable(5)">Sprays</th>
+                    <th onclick="sortTable(6)">Genre</th>
+                    <th onclick="sortTable(7)">Parfumo</th>
+                    <th onclick="sortTable(8)">Season</th>
+                    <th onclick="sortTable(9)">ml</th>
+                    <th>Notes / Comments</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <footer id="footer">
+        Loading collection...
+    </footer>
+
+    <script>
+        // Paste your full working script here (the one from before)
+        // I'll keep it short for brevity - use your previous script
+        let fragrances = [];
+        let currentGenres = new Set();
+        let sortState = {};
+
+        const highFirst = [2, 3, 4, 7];
+
+        async function loadCSV() {
+            try {
+                const res = await fetch('MyFragrances.csv?' + Date.now());
+                if (!res.ok) throw new Error("CSV not found");
+                
+                const text = await res.text();
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (result) => {
+                        fragrances = result.data
+                            .filter(row => row.Name && row.Name.trim())
+                            .map(row => {
+                                Object.keys(row).forEach(key => {
+                                    if (typeof row[key] === 'string') row[key] = row[key].trim();
+                                });
+                                return row;
+                            });
+                        renderTable(fragrances);
+                        renderGenreButtons();
+                        updateFooter();
+                    }
+                });
+            } catch (e) {
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading MyFragrances.csv</strong>`;
+            }
+        }
+
+        // ... (rest of your script: renderGenreButtons, renderTable, filterTable, etc.)
+
+        window.onload = loadCSV;
+    </script>
+</body>
+</html>
