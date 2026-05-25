@@ -67,64 +67,51 @@
         }
         .menu.active { display: block; }
 
-        .container {
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
+        .table-wrapper { 
+            padding: 20px; 
+            overflow-x: auto; 
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        table { 
+            min-width: 1450px; 
+            border-collapse: collapse; 
+            background: #111; 
+            width: 100%;
+        }
+        th, td { 
+            padding: 12px 10px; 
+            border-bottom: 1px solid #333;
+        }
+        th { 
+            background: #1a1a1a; 
+            color: #fff; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
+        }
+        tr:hover { background: #1f2a3a; }
+
+        td:nth-child(1), th:nth-child(1),
+        td:nth-child(2), th:nth-child(2),
+        td:nth-child(7), th:nth-child(7),
+        td:nth-child(9), th:nth-child(9),
+        td:nth-child(11), th:nth-child(11) {
+            text-align: left;
         }
 
-        .card {
-            background: #1a1a1a;
-            border-radius: 16px;
-            padding: 30px;
+        td:nth-child(3), th:nth-child(3),
+        td:nth-child(4), th:nth-child(4),
+        td:nth-child(5), th:nth-child(5),
+        td:nth-child(6), th:nth-child(6),
+        td:nth-child(8), th:nth-child(8),
+        td:nth-child(10), th:nth-child(10) {
             text-align: center;
-            margin: 20px auto;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-            min-height: 280px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .name {
-            font-size: 2.4rem;
-            margin: 10px 0;
-            color: #60a5fa;
-        }
-
-        .house {
-            font-size: 1.3rem;
-            color: #aaa;
-            margin-bottom: 20px;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-            margin: 25px 0;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #4ade80;
-        }
-
-        button {
-            background: #0066cc;
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            margin: 10px;
-        }
-
-        button:hover {
-            background: #3388ff;
+        .notes { 
+            min-width: 450px; 
+            white-space: normal !important; 
         }
     </style>
 </head>
@@ -147,31 +134,37 @@
         </div>
     </header>
     
-    <div class="container">
-        <div class="card" id="result">
-            <p>Click below to get a random fragrance</p>
-        </div>
-
-        <div style="text-align: center;">
-            <button onclick="getRandomFragrance()"> Pick Random Fragrance</button>
-        </div>
+    <div class="table-wrapper">
+        <table id="fragrance-table">
+            <thead>
+                <tr>
+                    <th>House</th>
+                    <th>Name</th>
+                    <th>Rating</th>
+                    <th>Hours</th>
+                    <th>Silliage</th>
+                    <th>Sprays</th>
+                    <th>Genre</th>
+                    <th>Parfumo</th>
+                    <th>Season</th>
+                    <th>ml</th>
+                    <th>Notes / Comments</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
-
-    <footer id="footer">Loading collection...</footer>
 
     <script>
         let fragrances = [];
 
         async function loadCSV() {
             try {
-                const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
                 
-                // CORS Proxy
-                const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(sheetUrl);
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
                 
-                const res = await fetch(proxyUrl + '?t=' + Date.now());
-                
-                if (!res.ok) throw new Error("HTTP " + res.status);
+                if (!res.ok) throw new Error("Failed to load");
                 
                 const text = await res.text();
 
@@ -187,36 +180,37 @@
                                 });
                                 return row;
                             });
-                        document.getElementById('footer').innerHTML = `Loaded ${fragrances.length} fragrances • Ready`;
+                        
+                        renderTable(fragrances);
                     }
                 });
             } catch (e) {
                 console.error(e);
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading collection</strong>`;
+                const tbody = document.querySelector('#fragrance-table tbody');
+                tbody.innerHTML = `<tr><td colspan="11" style="color:#ff6666; text-align:center; padding:40px;">Error loading collection</td></tr>`;
             }
         }
 
-        function getRandomFragrance() {
-            if (fragrances.length === 0) {
-                alert("Still loading fragrances...");
-                return;
+        function renderTable(data) {
+            const tbody = document.querySelector('#fragrance-table tbody');
+            let html = '';
+            for (let i = 0; i < data.length; i++) {
+                const f = data[i];
+                html += '<tr>' +
+                    '<td>' + (f.House || '') + '</td>' +
+                    '<td><strong>' + (f.Name || '') + '</strong></td>' +
+                    '<td>' + (f.Rating || '') + '</td>' +
+                    '<td>' + (f['Hours of Performance'] || '') + '</td>' +
+                    '<td>' + (f.Silliage || '') + '</td>' +
+                    '<td>' + (f.Sprays || '') + '</td>' +
+                    '<td>' + (f.Genre || '') + '</td>' +
+                    '<td>' + (f['Parfumo Rating'] || '') + '</td>' +
+                    '<td>' + (f.Seasons || '') + '</td>' +
+                    '<td>' + (f.Size || '') + '</td>' +
+                    '<td class="notes">' + (f.Notes || '') + ' <strong>' + (f.Comments || '') + '</strong></td>' +
+                    '</tr>';
             }
-            
-            const random = fragrances[Math.floor(Math.random() * fragrances.length)];
-            
-            const html = `
-                <div class="house">${random.House || ''}</div>
-                <div class="name">${random.Name || ''}</div>
-                <div class="stats">
-                    <div><strong>Rating:</strong> ${random.Rating || '?'}</div>
-                    <div><strong>Hours:</strong> ${random['Hours of Performance'] || '?'}</div>
-                    <div><strong>Sillage:</strong> ${random.Silliage || '?'}</div>
-                </div>
-                ${random.Genre ? `<div><strong>Genre:</strong> ${random.Genre}</div>` : ''}
-                ${random.Seasons ? `<div><strong>Season:</strong> ${random.Seasons}</div>` : ''}
-            `;
-            
-            document.getElementById('result').innerHTML = html;
+            tbody.innerHTML = html;
         }
 
         function toggleMenu() {
