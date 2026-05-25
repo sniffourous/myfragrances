@@ -123,11 +123,11 @@
     </header>
     
     <div class="random-card" id="random-card">
-        <p>Loading a random Fougère...</p>
+        <p>Loading random Fougere (>8.25)...</p>
     </div>
 
     <div style="text-align:center; margin:20px;">
-        <button onclick="getRandomFragrance()"> Pick Another Random Fougère (>8.25)</button>
+        <button onclick="getRandomFragrance()"> Pick Another Random Fougere (>8.25)</button>
     </div>
 
     <script>
@@ -168,7 +168,7 @@
         function getRandomFragrance() {
             if (fragrances.length === 0) return;
 
-            // Filter for Fougère with Rating > 8.25
+            // Filter for Fougere with Rating > 8.25
             const fougeres = fragrances.filter(row => {
                 const genre = (row.Genre || '').toLowerCase();
                 const rating = parseFloat(row.Rating);
@@ -177,7 +177,7 @@
 
             if (fougeres.length === 0) {
                 document.getElementById('random-card').innerHTML = `
-                    <p style="color:#ffcc66;">No Fougère fragrances with rating above 8.25 found.</p>
+                    <p style="color:#ffcc66;">No Fougere fragrances with rating above 8.25 found.</p>
                 `;
                 return;
             }
@@ -187,13 +187,16 @@
             document.getElementById('random-card').innerHTML = `
                 <div class="house">${random.House || ''}</div>
                 <div class="name">${random.Name || ''}</div>
-                <div style="margin:20px 0; font-size:1.3rem;">
+                <div style="margin:20px 0; font-size:1.3rem; color:#aaa;">
                     <strong>Rating:</strong> ${random.Rating || '?'} &nbsp;&nbsp;|&nbsp;&nbsp; 
                     <strong>Hours:</strong> ${random['Hours of Performance'] || '?'} &nbsp;&nbsp;|&nbsp;&nbsp; 
                     <strong>Sillage:</strong> ${random.Silliage || '?'}
                 </div>
                 ${random.Genre ? `<div><strong>Genre:</strong> ${random.Genre}</div>` : ''}
                 ${random.Seasons ? `<div><strong>Season:</strong> ${random.Seasons}</div>` : ''}
+                <div style="margin-top: 25px; font-size: 1.1rem; color: #60a5fa;">
+                     ${fougeres.length} qualifying Fougere fragrances
+                </div>
             `;
         }
 
