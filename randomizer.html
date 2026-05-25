@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Randomizer - My Fragrance Collection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            background: #0a0a0a; 
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            color: white;
+            padding: 1.8rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+        h1 { margin: 0; font-size: 2.2rem; }
+
+        .nav {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .hamburger span {
+            width: 28px;
+            height: 3px;
+            background: #60a5fa;
+            margin: 4px 0;
+            transition: 0.3s;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 65px;
+            left: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 0;
+            min-width: 180px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #e0e0e0;
+            text-decoration: none;
+        }
+        .menu a:hover {
+            background: #0066cc;
+            color: white;
+        }
+        .menu.active { display: block; }
+
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px auto;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .name {
+            font-size: 2.4rem;
+            margin: 10px 0;
+            color: #60a5fa;
+        }
+
+        .house {
+            font-size: 1.3rem;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin: 25px 0;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4ade80;
+        }
+
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        button:hover {
+            background: #3388ff;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Randomizer</h1>
+        <div class="nav">
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="menu" id="menu">
+                <a href="index.html">Home</a>
+                <a href="layers.html">Layers</a>
+                <a href="nowwearing.html">Now Wearing</a>
+                <a href="top.html">Top Fragrances</a>
+                <a href="randomizer.html">Randomizer</a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card" id="result">
+            <p>Click below to get a random fragrance</p>
+        </div>
+
+        <div style="text-align: center;">
+            <button onclick="getRandomFragrance()">🎲 Pick Random Fragrance</button>
+            <button onclick="getRandomFragrance()" style="background:#d97706;">Pick Again</button>
+        </div>
+    </div>
+
+    <footer id="footer">
+        Loading collection...
+    </footer>
+
+    <script>
+        let fragrances = [];
+
+  <!--      async function loadCSV() {
+            try {
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
+                
+                const res = await fetch(url + '?t=' + Date.now());
+                if (!res.ok) throw new Error("Failed to load");
+                
+                const text = await res.text();
+                
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (result) => {
+                        fragrances = result.data
+                            .filter(row => row.Name && row.Name.trim())
+                            .map(row => {
+                                Object.keys(row).forEach(key => {
+                                    if (typeof row[key] === 'string') row[key] = row[key].trim();
+                                });
+                                return row;
+                            });
+                        document.getElementById('footer').innerHTML = `Loaded ${fragrances.length} fragrances • Ready to randomize`;
+                    }
+                });
+            } catch (e) {
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading collection</strong>`;
+            }
+        }
+-->
+
+        async function loadCSV() {
+            try {
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
+                
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                
+                if (!res.ok) throw new Error("HTTP error: " + res.status);
+                
+                const text = await res.text();
+                
+                if (!text || text.trim() === '') throw new Error("Empty response from Google");
+
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (result) => {
+                        fragrances = result.data
+                            .filter(row => row.Name && row.Name.trim())
+                            .map(row => {
+                                Object.keys(row).forEach(key => {
+                                    if (typeof row[key] === 'string') row[key] = row[key].trim();
+                                });
+                                return row;
+                            });
+                        
+                        console.log(" Loaded", fragrances.length, "fragrances");
+<!--                        renderTable(fragrances);
+                        renderGenreButtons();
+                        updateFooter();
+-->                        
+                    }
+                });
+            } catch (e) {
+                console.error("Load error:", e);
+  <!--              document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading Google Sheet</strong><br><small>${e.message}</small>`;
+  -->
+            }
+        }
+
+        function getRandomFragrance() {
+            if (fragrances.length === 0) return;
+            
+            const random = fragrances[Math.floor(Math.random() * fragrances.length)];
+            
+            const html = `
+                <div class="house">${random.House || ''}</div>
+                <div class="name">${random.Name || ''}</div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">${random.Rating || '?'}</div>
+                        <div>Rating</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${random['Hours of Performance'] || '?'}</div>
+                        <div>Hours</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${random.Silliage || '?'}</div>
+                        <div>Sillage</div>
+                    </div>
+                </div>
+                <div style="margin-top:20px; color:#aaa;">
+                    ${random.Genre ? `<strong>Genre:</strong> ${random.Genre}<br>` : ''}
+                    ${random.Seasons ? `<strong>Season:</strong> ${random.Seasons}` : ''}
+                </div>
+            `;
+            
+            document.getElementById('result').innerHTML = html;
+        }
+
+        function toggleMenu() {
+            document.getElementById('menu').classList.toggle('active');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav')) {
+                document.getElementById('menu').classList.remove('active');
+            }
+        });
+
+        window.onload = loadCSV;
+    </script>
+</body>
+</html>
