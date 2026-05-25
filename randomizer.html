@@ -24,79 +24,47 @@
         }
         h1 { margin: 0; font-size: 2.2rem; }
 
-        .nav {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-        }
-        .hamburger {
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            padding: 8px;
-        }
-        .hamburger span {
-            width: 28px;
-            height: 3px;
-            background: #60a5fa;
-            margin: 4px 0;
-            transition: 0.3s;
-        }
+        .nav { position: absolute; top: 20px; left: 20px; }
+        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 8px; }
+        .hamburger span { width: 28px; height: 3px; background: #60a5fa; margin: 4px 0; }
+
         .menu {
-            display: none;
-            position: absolute;
-            top: 65px;
-            left: 20px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px 0;
-            min-width: 180px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            z-index: 1000;
+            display: none; position: absolute; top: 65px; left: 20px; background: #1a1a1a;
+            border: 1px solid #333; border-radius: 8px; padding: 12px 0; min-width: 180px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1000;
         }
-        .menu a {
-            display: block;
-            padding: 12px 20px;
-            color: #e0e0e0;
-            text-decoration: none;
-        }
-        .menu a:hover {
-            background: #0066cc;
-            color: white;
-        }
+        .menu a { display: block; padding: 12px 20px; color: #e0e0e0; text-decoration: none; }
+        .menu a:hover { background: #0066cc; color: white; }
         .menu.active { display: block; }
 
         .random-card {
             background: #1f2a3a;
             border: 2px solid #60a5fa;
             border-radius: 16px;
-            padding: 30px;
+            padding: 25px;
             margin: 20px;
             text-align: center;
         }
+        .name { font-size: 2.3rem; color: #60a5fa; margin: 10px 0; }
+        .house { font-size: 1.3rem; color: #aaa; }
 
-        .house {
-            font-size: 1.4rem;
-            color: #aaa;
+        .genre-buttons {
+            padding: 0 20px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
         }
-
-        .name {
-            font-size: 2.4rem;
-            color: #60a5fa;
-            margin: 12px 0;
-        }
-
-        button {
-            background: #0066cc;
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            font-size: 1.1rem;
-            border-radius: 50px;
+        .genre-btn {
+            background: #1f1f1f;
+            color: #4da6ff;
+            border: 2px solid #0066cc;
+            padding: 10px 18px;
+            border-radius: 30px;
             cursor: pointer;
-            margin: 10px;
+            font-weight: 600;
         }
+        .genre-btn:hover { background: #0066cc; color: white; }
     </style>
 </head>
 <body>
@@ -104,9 +72,7 @@
         <h1>Randomizer</h1>
         <div class="nav">
             <div class="hamburger" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </div>
             <div class="menu" id="menu">
                 <a href="index.html">Home</a>
@@ -122,9 +88,11 @@
         <p>Loading random fragrance...</p>
     </div>
 
-    <div style="text-align:center;">
-        <button onclick="getRandomFragrance()"> New Random Pick</button>
+    <div style="text-align:center; margin:10px;">
+        <button onclick="getRandomFragrance()" style="padding:16px 40px; font-size:1.2rem;"> Any Random Fragrance</button>
     </div>
+
+    <div class="genre-buttons" id="genre-buttons"></div>
 
     <script>
         let fragrances = [];
@@ -134,9 +102,6 @@
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
                 
                 const res = await fetch(url + '?t=' + Date.now());
-                
-                if (!res.ok) throw new Error("Failed to load");
-                
                 const text = await res.text();
 
                 Papa.parse(text, {
@@ -152,29 +117,47 @@
                                 return row;
                             });
                         
-                        getRandomFragrance(); // Show one random immediately
+                        renderGenreButtons();
+                        getRandomFragrance(); // Show one random on load
                     }
                 });
             } catch (e) {
-                console.error(e);
                 document.getElementById('random-card').innerHTML = `<p style="color:#ff6666;">Error loading collection</p>`;
             }
         }
 
-        function getRandomFragrance() {
-            if (fragrances.length === 0) return;
+        function getRandomFragrance(filteredList = null) {
+            const list = filteredList || fragrances;
+            if (list.length === 0) return;
             
-            const random = fragrances[Math.floor(Math.random() * fragrances.length)];
+            const random = list[Math.floor(Math.random() * list.length)];
             
             document.getElementById('random-card').innerHTML = `
                 <div class="house">${random.House || ''}</div>
                 <div class="name">${random.Name || ''}</div>
-                <div style="margin-top: 15px; font-size: 1.3rem;">
+                <div style="margin-top:15px; font-size:1.25rem;">
                     Rating: <strong>${random.Rating || '?'}</strong> | 
                     Hours: <strong>${random['Hours of Performance'] || '?'}</strong> | 
                     Sillage: <strong>${random.Silliage || '?'}</strong>
                 </div>
             `;
+        }
+
+        function renderGenreButtons() {
+            const genres = [...new Set(fragrances.map(f => f.Genre).filter(Boolean))].sort();
+            const container = document.getElementById('genre-buttons');
+            container.innerHTML = '';
+
+            genres.forEach(genre => {
+                const btn = document.createElement('button');
+                btn.className = 'genre-btn';
+                btn.textContent = genre;
+                btn.onclick = () => {
+                    const filtered = fragrances.filter(f => f.Genre === genre);
+                    getRandomFragrance(filtered);
+                };
+                container.appendChild(btn);
+            });
         }
 
         function toggleMenu() {
