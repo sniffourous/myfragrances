@@ -67,14 +67,36 @@
         }
         .menu.active { display: block; }
 
+        .mode-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 20px 10px;
+        }
+        .tab {
+            padding: 10px 24px;
+            background: #1f2a3a;
+            border: 2px solid #334455;
+            border-radius: 50px;
+            color: #aaa;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: #60a5fa;
+            color: #000;
+            border-color: #60a5fa;
+        }
+
         .random-card {
             background: #1f2a3a;
             border: 2px solid #60a5fa;
             border-radius: 16px;
             padding: 40px 20px;
-            margin: 30px 20px;
+            margin: 20px;
             text-align: center;
-            min-height: 300px;
+            min-height: 320px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -99,7 +121,14 @@
             font-size: 1.2rem;
             border-radius: 50px;
             cursor: pointer;
-            margin-top: 20px;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .count {
+            margin-top: 25px;
+            font-size: 1.05rem;
+            color: #60a5fa;
         }
     </style>
 </head>
@@ -122,16 +151,22 @@
         </div>
     </header>
     
-    <div class="random-card" id="random-card">
-        <p>Loading random Fougere (>8.25)...</p>
+    <div class="mode-tabs">
+        <div class="tab active" id="tab-all" onclick="switchMode('all')">All Fragrances</div>
+        <div class="tab" id="tab-fougere" onclick="switchMode('fougere')">Fougere (>8.25)</div>
     </div>
 
-    <div style="text-align:center; margin:20px;">
-        <button onclick="getRandomFragrance()"> Pick Another Random Fougere (>8.25)</button>
+    <div class="random-card" id="random-card">
+        <p>Loading fragrances...</p>
+    </div>
+
+    <div style="text-align:center;">
+        <button onclick="getRandomFragrance()"> Pick Another Random</button>
     </div>
 
     <script>
         let fragrances = [];
+        let currentMode = 'all';
 
         async function loadCSV() {
             try {
@@ -165,24 +200,30 @@
             }
         }
 
+        function getFilteredFragrances() {
+            if (currentMode === 'fougere') {
+                return fragrances.filter(row => {
+                    const genre = (row.Genre || '').toLowerCase();
+                    const rating = parseFloat(row.Rating);
+                    return genre.includes('fougere') && !isNaN(rating) && rating > 8.25;
+                });
+            }
+            return fragrances; // All fragrances
+        }
+
         function getRandomFragrance() {
             if (fragrances.length === 0) return;
 
-            // Filter for Fougere with Rating > 8.25
-            const fougeres = fragrances.filter(row => {
-                const genre = (row.Genre || '').toLowerCase();
-                const rating = parseFloat(row.Rating);
-                return genre.includes('fougere') && !isNaN(rating) && rating > 8.25;
-            });
+            const filtered = getFilteredFragrances();
 
-            if (fougeres.length === 0) {
+            if (filtered.length === 0) {
                 document.getElementById('random-card').innerHTML = `
-                    <p style="color:#ffcc66;">No Fougere fragrances with rating above 8.25 found.</p>
+                    <p style="color:#ffcc66;">No matching fragrances found.</p>
                 `;
                 return;
             }
 
-            const random = fougeres[Math.floor(Math.random() * fougeres.length)];
+            const random = filtered[Math.floor(Math.random() * filtered.length)];
             
             document.getElementById('random-card').innerHTML = `
                 <div class="house">${random.House || ''}</div>
@@ -194,10 +235,20 @@
                 </div>
                 ${random.Genre ? `<div><strong>Genre:</strong> ${random.Genre}</div>` : ''}
                 ${random.Seasons ? `<div><strong>Season:</strong> ${random.Seasons}</div>` : ''}
-                <div style="margin-top: 25px; font-size: 1.1rem; color: #60a5fa;">
-                     ${fougeres.length} qualifying Fougere fragrances
+                <div class="count">
+                     ${filtered.length} qualifying fragrances
                 </div>
             `;
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update active tab
+            document.getElementById('tab-all').classList.toggle('active', mode === 'all');
+            document.getElementById('tab-fougere').classList.toggle('active', mode === 'fougere');
+            
+            getRandomFragrance(); // Refresh with new mode
         }
 
         function toggleMenu() {
