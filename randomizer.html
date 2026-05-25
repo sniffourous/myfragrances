@@ -71,62 +71,35 @@
             background: #1f2a3a;
             border: 2px solid #60a5fa;
             border-radius: 16px;
-            padding: 20px;
-            margin: 15px 20px;
+            padding: 40px 20px;
+            margin: 30px 20px;
             text-align: center;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .random-name {
-            font-size: 2.2rem;
+        .house {
+            font-size: 1.4rem;
+            color: #aaa;
+        }
+
+        .name {
+            font-size: 2.6rem;
             color: #60a5fa;
-            margin: 8px 0;
+            margin: 15px 0;
         }
 
-        .table-wrapper { 
-            padding: 0 20px 20px; 
-            overflow-x: auto; 
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-        table { 
-            min-width: 1450px; 
-            border-collapse: collapse; 
-            background: #111; 
-            width: 100%;
-        }
-        th, td { 
-            padding: 12px 10px; 
-            border-bottom: 1px solid #333;
-        }
-        th { 
-            background: #1a1a1a; 
-            color: #fff; 
-            position: sticky; 
-            top: 0; 
-            z-index: 10;
-        }
-        tr:hover { background: #1f2a3a; }
-
-        td:nth-child(1), th:nth-child(1),
-        td:nth-child(2), th:nth-child(2),
-        td:nth-child(7), th:nth-child(7),
-        td:nth-child(9), th:nth-child(9),
-        td:nth-child(11), th:nth-child(11) {
-            text-align: left;
-        }
-
-        td:nth-child(3), th:nth-child(3),
-        td:nth-child(4), th:nth-child(4),
-        td:nth-child(5), th:nth-child(5),
-        td:nth-child(6), th:nth-child(6),
-        td:nth-child(8), th:nth-child(8),
-        td:nth-child(10), th:nth-child(10) {
-            text-align: center;
-        }
-
-        .notes { 
-            min-width: 450px; 
-            white-space: normal !important; 
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -148,30 +121,13 @@
             </div>
         </div>
     </header>
-
-    <div class="random-card" id="random-pick">
+    
+    <div class="random-card" id="random-card">
         <p>Loading a random fragrance...</p>
     </div>
 
-    <div class="table-wrapper">
-        <table id="fragrance-table">
-            <thead>
-                <tr>
-                    <th>House</th>
-                    <th>Name</th>
-                    <th>Rating</th>
-                    <th>Hours</th>
-                    <th>Silliage</th>
-                    <th>Sprays</th>
-                    <th>Genre</th>
-                    <th>Parfumo</th>
-                    <th>Season</th>
-                    <th>ml</th>
-                    <th>Notes / Comments</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <div style="text-align:center; margin:20px;">
+        <button onclick="getRandomFragrance()"> Pick Another Random Fragrance</button>
     </div>
 
     <script>
@@ -200,52 +156,31 @@
                                 return row;
                             });
                         
-                        renderTable(fragrances);
-                        showRandomFragrance();   // Show one random on load
+                        getRandomFragrance(); // Show random on load
                     }
                 });
             } catch (e) {
                 console.error(e);
-                document.getElementById('random-pick').innerHTML = `<p style="color:#ff6666;">Error loading collection</p>`;
+                document.getElementById('random-card').innerHTML = `<p style="color:#ff6666;">Error loading collection</p>`;
             }
         }
 
-        function showRandomFragrance() {
+        function getRandomFragrance() {
             if (fragrances.length === 0) return;
             
             const random = fragrances[Math.floor(Math.random() * fragrances.length)];
             
-            document.getElementById('random-pick').innerHTML = `
-                <strong style="color:#60a5fa; font-size:1.4rem;">Random Pick:</strong><br><br>
-                <div style="font-size:2rem;">\( {random.House || ''} - <strong> \){random.Name || ''}</strong></div>
-                <div style="margin-top:12px;">
-                    Rating: <strong>${random.Rating || '?'}</strong> | 
-                    Hours: <strong>${random['Hours of Performance'] || '?'}</strong> | 
-                    Sillage: <strong>${random.Silliage || '?'}</strong>
+            document.getElementById('random-card').innerHTML = `
+                <div class="house">${random.House || ''}</div>
+                <div class="name">${random.Name || ''}</div>
+                <div style="margin:20px 0; font-size:1.3rem;">
+                    <strong>Rating:</strong> ${random.Rating || '?'} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                    <strong>Hours:</strong> ${random['Hours of Performance'] || '?'} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                    <strong>Sillage:</strong> ${random.Silliage || '?'}
                 </div>
+                ${random.Genre ? `<div><strong>Genre:</strong> ${random.Genre}</div>` : ''}
+                ${random.Seasons ? `<div><strong>Season:</strong> ${random.Seasons}</div>` : ''}
             `;
-        }
-
-        function renderTable(data) {
-            const tbody = document.querySelector('#fragrance-table tbody');
-            let html = '';
-            for (let i = 0; i < data.length; i++) {
-                const f = data[i];
-                html += '<tr>' +
-                    '<td>' + (f.House || '') + '</td>' +
-                    '<td><strong>' + (f.Name || '') + '</strong></td>' +
-                    '<td>' + (f.Rating || '') + '</td>' +
-                    '<td>' + (f['Hours of Performance'] || '') + '</td>' +
-                    '<td>' + (f.Silliage || '') + '</td>' +
-                    '<td>' + (f.Sprays || '') + '</td>' +
-                    '<td>' + (f.Genre || '') + '</td>' +
-                    '<td>' + (f['Parfumo Rating'] || '') + '</td>' +
-                    '<td>' + (f.Seasons || '') + '</td>' +
-                    '<td>' + (f.Size || '') + '</td>' +
-                    '<td class="notes">' + (f.Notes || '') + ' <strong>' + (f.Comments || '') + '</strong></td>' +
-                    '</tr>';
-            }
-            tbody.innerHTML = html;
         }
 
         function toggleMenu() {
