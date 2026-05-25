@@ -67,10 +67,25 @@
         }
         .menu.active { display: block; }
 
+        .random-card {
+            background: #1f2a3a;
+            border: 2px solid #60a5fa;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 15px 20px;
+            text-align: center;
+        }
+
+        .random-name {
+            font-size: 2.2rem;
+            color: #60a5fa;
+            margin: 8px 0;
+        }
+
         .table-wrapper { 
             padding: 0 20px 20px; 
             overflow-x: auto; 
-            max-height: 85vh;
+            max-height: 70vh;
             overflow-y: auto;
         }
         table { 
@@ -133,7 +148,11 @@
             </div>
         </div>
     </header>
-    
+
+    <div class="random-card" id="random-pick">
+        <p>Loading a random fragrance...</p>
+    </div>
+
     <div class="table-wrapper">
         <table id="fragrance-table">
             <thead>
@@ -182,13 +201,29 @@
                             });
                         
                         renderTable(fragrances);
+                        showRandomFragrance();   // Show one random on load
                     }
                 });
             } catch (e) {
                 console.error(e);
-                const tbody = document.querySelector('#fragrance-table tbody');
-                tbody.innerHTML = `<tr><td colspan="11" style="color:#ff6666; text-align:center; padding:50px;">Error loading collection</td></tr>`;
+                document.getElementById('random-pick').innerHTML = `<p style="color:#ff6666;">Error loading collection</p>`;
             }
+        }
+
+        function showRandomFragrance() {
+            if (fragrances.length === 0) return;
+            
+            const random = fragrances[Math.floor(Math.random() * fragrances.length)];
+            
+            document.getElementById('random-pick').innerHTML = `
+                <strong style="color:#60a5fa; font-size:1.4rem;">Random Pick:</strong><br><br>
+                <div style="font-size:2rem;">\( {random.House || ''} - <strong> \){random.Name || ''}</strong></div>
+                <div style="margin-top:12px;">
+                    Rating: <strong>${random.Rating || '?'}</strong> | 
+                    Hours: <strong>${random['Hours of Performance'] || '?'}</strong> | 
+                    Sillage: <strong>${random.Silliage || '?'}</strong>
+                </div>
+            `;
         }
 
         function renderTable(data) {
