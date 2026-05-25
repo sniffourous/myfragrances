@@ -80,6 +80,10 @@
             text-align: center;
             margin: 20px auto;
             box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .name {
@@ -102,10 +106,6 @@
             margin: 25px 0;
         }
 
-        .stat {
-            text-align: center;
-        }
-
         .stat-value {
             font-size: 1.8rem;
             font-weight: bold;
@@ -125,13 +125,6 @@
 
         button:hover {
             background: #3388ff;
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: #888;
-            font-size: 0.95rem;
         }
     </style>
 </head>
@@ -161,28 +154,26 @@
 
         <div style="text-align: center;">
             <button onclick="getRandomFragrance()"> Pick Random Fragrance</button>
-            <button onclick="getRandomFragrance()" style="background:#d97706;">Pick Again</button>
         </div>
     </div>
 
-    <footer id="footer">
-        Loading collection...
-    </footer>
+    <footer id="footer">Loading collection...</footer>
 
     <script>
         let fragrances = [];
 
         async function loadCSV() {
             try {
-                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
+                const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
                 
-                const res = await fetch(url + '?t=' + Date.now());
+                // CORS Proxy
+                const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(sheetUrl);
                 
-                if (!res.ok) throw new Error("HTTP error: " + res.status);
+                const res = await fetch(proxyUrl + '?t=' + Date.now());
+                
+                if (!res.ok) throw new Error("HTTP " + res.status);
                 
                 const text = await res.text();
-                
-                if (!text || text.trim() === '') throw new Error("Empty response from Google");
 
                 Papa.parse(text, {
                     header: true,
@@ -196,8 +187,7 @@
                                 });
                                 return row;
                             });
-                        
-                        document.getElementById('footer').innerHTML = `Loaded ${fragrances.length} fragrances • Ready!`;
+                        document.getElementById('footer').innerHTML = `Loaded ${fragrances.length} fragrances • Ready`;
                     }
                 });
             } catch (e) {
@@ -208,7 +198,7 @@
 
         function getRandomFragrance() {
             if (fragrances.length === 0) {
-                alert("No fragrances loaded yet.");
+                alert("Still loading fragrances...");
                 return;
             }
             
@@ -218,23 +208,12 @@
                 <div class="house">${random.House || ''}</div>
                 <div class="name">${random.Name || ''}</div>
                 <div class="stats">
-                    <div class="stat">
-                        <div class="stat-value">${random.Rating || '?'}</div>
-                        <div>Rating</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">${random['Hours of Performance'] || '?'}</div>
-                        <div>Hours</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">${random.Silliage || '?'}</div>
-                        <div>Sillage</div>
-                    </div>
+                    <div><strong>Rating:</strong> ${random.Rating || '?'}</div>
+                    <div><strong>Hours:</strong> ${random['Hours of Performance'] || '?'}</div>
+                    <div><strong>Sillage:</strong> ${random.Silliage || '?'}</div>
                 </div>
-                <div style="margin-top:20px; color:#aaa; font-size:1.1rem;">
-                    ${random.Genre ? `<strong>Genre:</strong> ${random.Genre}<br>` : ''}
-                    ${random.Seasons ? `<strong>Season:</strong> ${random.Seasons}` : ''}
-                </div>
+                ${random.Genre ? `<div><strong>Genre:</strong> ${random.Genre}</div>` : ''}
+                ${random.Seasons ? `<div><strong>Season:</strong> ${random.Seasons}</div>` : ''}
             `;
             
             document.getElementById('result').innerHTML = html;
