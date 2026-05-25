@@ -123,11 +123,11 @@
     </header>
     
     <div class="random-card" id="random-card">
-        <p>Loading a random fragrance...</p>
+        <p>Loading a random Fougère...</p>
     </div>
 
     <div style="text-align:center; margin:20px;">
-        <button onclick="getRandomFragrance()"> Pick Another Random Fragrance</button>
+        <button onclick="getRandomFragrance()"> Pick Another Random Fougère (>8.25)</button>
     </div>
 
     <script>
@@ -167,8 +167,22 @@
 
         function getRandomFragrance() {
             if (fragrances.length === 0) return;
-            
-            const random = fragrances[Math.floor(Math.random() * fragrances.length)];
+
+            // Filter for Fougère with Rating > 8.25
+            const fougeres = fragrances.filter(row => {
+                const genre = (row.Genre || '').toLowerCase();
+                const rating = parseFloat(row.Rating);
+                return genre.includes('fougere') && !isNaN(rating) && rating > 8.25;
+            });
+
+            if (fougeres.length === 0) {
+                document.getElementById('random-card').innerHTML = `
+                    <p style="color:#ffcc66;">No Fougère fragrances with rating above 8.25 found.</p>
+                `;
+                return;
+            }
+
+            const random = fougeres[Math.floor(Math.random() * fougeres.length)];
             
             document.getElementById('random-card').innerHTML = `
                 <div class="house">${random.House || ''}</div>
