@@ -154,16 +154,14 @@
         </div>
     </header>
     
-    <div class="mode-tabs" id="mode-tabs">
-        <!-- Tabs populated dynamically by JS -->
-    </div>
+    <div class="mode-tabs" id="mode-tabs"></div>
 
     <div class="random-card" id="random-card">
         <p>Loading fragrances...</p>
     </div>
 
     <div style="text-align:center;">
-        <button onclick="getRandomFragrance()"> Pick Another Random</button>
+        <button onclick="getRandomFragrance()">🎲 Pick Another Random</button>
     </div>
 
     <script>
@@ -196,7 +194,7 @@
 
                         calculateGenreMaxRatings();
                         createDynamicTabs();
-                        getRandomFragrance(); // Show first random
+                        getRandomFragrance();
                     }
                 });
             } catch (e) {
@@ -224,30 +222,24 @@
             container.innerHTML = '';
 
             // All Fragrances
-            const allTab = document.createElement('div');
-            allTab.className = 'tab active';
-            allTab.id = 'tab-all';
-            allTab.textContent = 'All Fragrances';
-            allTab.onclick = () => switchMode('all');
-            container.appendChild(allTab);
+            addTab('All Fragrances', 'all', true);
 
             // Unrated
-            const unratedTab = document.createElement('div');
-            unratedTab.className = 'tab';
-            unratedTab.id = 'tab-unrated';
-            unratedTab.textContent = 'Unrated Fragrances';
-            unratedTab.onclick = () => switchMode('unrated');
-            container.appendChild(unratedTab);
+            addTab('Unrated Fragrances', 'unrated');
 
-            // Dynamic Genres
+            // Genres
             Object.keys(genreMaxRatings).sort().forEach(genre => {
-                const tab = document.createElement('div');
-                tab.className = 'tab';
-                tab.id = `tab-genre-${genre.replace(/\s+/g, '-')}`;
-                tab.textContent = genre;
-                tab.onclick = () => switchMode('genre', genre);
-                container.appendChild(tab);
+                addTab(genre, `genre-${genre}`);
             });
+        }
+
+        function addTab(label, modeId, isActive = false) {
+            const tab = document.createElement('div');
+            tab.className = `tab ${isActive ? 'active' : ''}`;
+            tab.id = `tab-${modeId.replace(/\s+/g, '-')}`;
+            tab.textContent = label;
+            tab.onclick = () => switchMode(modeId);
+            document.getElementById('mode-tabs').appendChild(tab);
         }
 
         function getFilteredFragrances() {
@@ -259,8 +251,10 @@
             }
 
             if (currentMode.startsWith('genre-')) {
-                const genreName = currentMode.split('-')[1];
+                const genreName = currentMode.substring(6); // Remove 'genre-'
                 const maxRating = genreMaxRatings[genreName];
+                if (!maxRating) return [];
+                
                 const threshold = maxRating - 2;
 
                 return fragrances.filter(row => {
@@ -270,7 +264,7 @@
                 });
             }
 
-            return fragrances; // All
+            return fragrances; // All fragrances
         }
 
         function getRandomFragrance() {
@@ -298,24 +292,20 @@
                 ${random.Genre ? `<div><strong>Genre:</strong> ${random.Genre}</div>` : ''}
                 ${random.Seasons ? `<div><strong>Season:</strong> ${random.Seasons}</div>` : ''}
                 <div class="count">
-                     ${filtered.length} qualifying fragrances
+                    🎲 ${filtered.length} qualifying fragrances
                 </div>
             `;
         }
 
-        function switchMode(mode, genre = null) {
-            if (mode === 'genre' && genre) {
-                currentMode = `genre-${genre}`;
-            } else {
-                currentMode = mode;
-            }
+        function switchMode(modeId) {
+            currentMode = modeId;
 
-            // Update active states
+            // Update active tab
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
-                if (mode === 'all' && tab.id === 'tab-all') tab.classList.add('active');
-                if (mode === 'unrated' && tab.id === 'tab-unrated') tab.classList.add('active');
-                if (mode === 'genre' && tab.textContent === genre) tab.classList.add('active');
+                if (tab.id === `tab-${modeId.replace(/\s+/g, '-')}`) {
+                    tab.classList.add('active');
+                }
             });
 
             getRandomFragrance();
