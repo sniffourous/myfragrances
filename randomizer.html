@@ -75,7 +75,7 @@
             flex-wrap: wrap;
         }
         .tab {
-            padding: 10px 20px;
+            padding: 10px 18px;
             background: #1f2a3a;
             border: 2px solid #334455;
             border-radius: 50px;
@@ -83,7 +83,8 @@
             cursor: pointer;
             font-weight: 500;
             transition: all 0.3s;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            white-space: nowrap;
         }
         .tab.active {
             background: #60a5fa;
@@ -153,10 +154,8 @@
         </div>
     </header>
     
-    <div class="mode-tabs">
-        <div class="tab active" id="tab-all" onclick="switchMode('all')">All Fragrances</div>
-        <div class="tab" id="tab-fougere" onclick="switchMode('fougere')">Fougere (>8.25)</div>
-        <div class="tab" id="tab-unrated" onclick="switchMode('unrated')">Unrated Fragrances</div>
+    <div class="mode-tabs" id="mode-tabs">
+        <!-- Tabs populated dynamically by JS -->
     </div>
 
     <div class="random-card" id="random-card">
@@ -170,6 +169,7 @@
     <script>
         let fragrances = [];
         let currentMode = 'all';
+        let genreMaxRatings = {};
 
         async function loadCSV() {
             try {
@@ -193,8 +193,10 @@
                                 });
                                 return row;
                             });
-                        
-                        getRandomFragrance(); // Show random on load
+
+                        calculateGenreMaxRatings();
+                        createDynamicTabs();
+                        getRandomFragrance(); // Show first random
                     }
                 });
             } catch (e) {
@@ -203,20 +205,72 @@
             }
         }
 
+        function calculateGenreMaxRatings() {
+            genreMaxRatings = {};
+            fragrances.forEach(row => {
+                const genre = (row.Genre || '').trim();
+                if (!genre) return;
+                const rating = parseFloat(row.Rating);
+                if (isNaN(rating)) return;
+
+                if (!genreMaxRatings[genre] || rating > genreMaxRatings[genre]) {
+                    genreMaxRatings[genre] = rating;
+                }
+            });
+        }
+
+        function createDynamicTabs() {
+            const container = document.getElementById('mode-tabs');
+            container.innerHTML = '';
+
+            // All Fragrances
+            const allTab = document.createElement('div');
+            allTab.className = 'tab active';
+            allTab.id = 'tab-all';
+            allTab.textContent = 'All Fragrances';
+            allTab.onclick = () => switchMode('all');
+            container.appendChild(allTab);
+
+            // Unrated
+            const unratedTab = document.createElement('div');
+            unratedTab.className = 'tab';
+            unratedTab.id = 'tab-unrated';
+            unratedTab.textContent = 'Unrated Fragrances';
+            unratedTab.onclick = () => switchMode('unrated');
+            container.appendChild(unratedTab);
+
+            // Dynamic Genres
+            Object.keys(genreMaxRatings).sort().forEach(genre => {
+                const tab = document.createElement('div');
+                tab.className = 'tab';
+                tab.id = `tab-genre-${genre.replace(/\s+/g, '-')}`;
+                tab.textContent = genre;
+                tab.onclick = () => switchMode('genre', genre);
+                container.appendChild(tab);
+            });
+        }
+
         function getFilteredFragrances() {
-            if (currentMode === 'fougere') {
-                return fragrances.filter(row => {
-                    const genre = (row.Genre || '').toLowerCase();
-                    const rating = parseFloat(row.Rating);
-                    return genre.includes('fougere') && !isNaN(rating) && rating > 8.25;
-                });
-            } else if (currentMode === 'unrated') {
+            if (currentMode === 'unrated') {
                 return fragrances.filter(row => {
                     const rating = (row.Rating || '').trim();
                     return rating === '' || rating === '0' || rating === '0.0';
                 });
             }
-            return fragrances; // All fragrances
+
+            if (currentMode.startsWith('genre-')) {
+                const genreName = currentMode.split('-')[1];
+                const maxRating = genreMaxRatings[genreName];
+                const threshold = maxRating - 2;
+
+                return fragrances.filter(row => {
+                    const rowGenre = (row.Genre || '').trim();
+                    const rating = parseFloat(row.Rating);
+                    return rowGenre === genreName && !isNaN(rating) && rating > threshold;
+                });
+            }
+
+            return fragrances; // All
         }
 
         function getRandomFragrance() {
@@ -249,15 +303,22 @@
             `;
         }
 
-        function switchMode(mode) {
-            currentMode = mode;
-            
-            // Update active tabs
-            document.getElementById('tab-all').classList.toggle('active', mode === 'all');
-            document.getElementById('tab-fougere').classList.toggle('active', mode === 'fougere');
-            document.getElementById('tab-unrated').classList.toggle('active', mode === 'unrated');
-            
-            getRandomFragrance(); // Refresh with new mode
+        function switchMode(mode, genre = null) {
+            if (mode === 'genre' && genre) {
+                currentMode = `genre-${genre}`;
+            } else {
+                currentMode = mode;
+            }
+
+            // Update active states
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (mode === 'all' && tab.id === 'tab-all') tab.classList.add('active');
+                if (mode === 'unrated' && tab.id === 'tab-unrated') tab.classList.add('active');
+                if (mode === 'genre' && tab.textContent === genre) tab.classList.add('active');
+            });
+
+            getRandomFragrance();
         }
 
         function toggleMenu() {
