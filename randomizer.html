@@ -71,13 +71,9 @@
             background: #1f2a3a;
             border: 2px solid #60a5fa;
             border-radius: 16px;
-            padding: 40px 20px;
-            margin: 30px 20px;
+            padding: 30px;
+            margin: 20px;
             text-align: center;
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
 
         .house {
@@ -86,20 +82,20 @@
         }
 
         .name {
-            font-size: 2.6rem;
+            font-size: 2.4rem;
             color: #60a5fa;
-            margin: 15px 0;
+            margin: 12px 0;
         }
 
         button {
             background: #0066cc;
             color: white;
             border: none;
-            padding: 16px 40px;
-            font-size: 1.2rem;
+            padding: 14px 32px;
+            font-size: 1.1rem;
             border-radius: 50px;
             cursor: pointer;
-            margin-top: 20px;
+            margin: 10px;
         }
     </style>
 </head>
@@ -123,11 +119,11 @@
     </header>
     
     <div class="random-card" id="random-card">
-        <p>Loading a random fragrance...</p>
+        <p>Loading random fragrance...</p>
     </div>
 
-    <div style="text-align:center; margin:20px;">
-        <button onclick="getRandomFragrance()"> Pick Another Random Fragrance</button>
+    <div style="text-align:center;">
+        <button onclick="getRandomFragrance()"> New Random Pick</button>
     </div>
 
     <script>
@@ -137,7 +133,7 @@
             try {
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
                 
-                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                const res = await fetch(url + '?t=' + Date.now());
                 
                 if (!res.ok) throw new Error("Failed to load");
                 
@@ -156,7 +152,7 @@
                                 return row;
                             });
                         
-                        getRandomFragrance(); // Show random on load
+                        getRandomFragrance(); // Show one random immediately
                     }
                 });
             } catch (e) {
@@ -173,13 +169,11 @@
             document.getElementById('random-card').innerHTML = `
                 <div class="house">${random.House || ''}</div>
                 <div class="name">${random.Name || ''}</div>
-                <div style="margin:20px 0; font-size:1.3rem;">
-                    <strong>Rating:</strong> ${random.Rating || '?'} &nbsp;&nbsp;|&nbsp;&nbsp; 
-                    <strong>Hours:</strong> ${random['Hours of Performance'] || '?'} &nbsp;&nbsp;|&nbsp;&nbsp; 
-                    <strong>Sillage:</strong> ${random.Silliage || '?'}
+                <div style="margin-top: 15px; font-size: 1.3rem;">
+                    Rating: <strong>${random.Rating || '?'}</strong> | 
+                    Hours: <strong>${random['Hours of Performance'] || '?'}</strong> | 
+                    Sillage: <strong>${random.Silliage || '?'}</strong>
                 </div>
-                ${random.Genre ? `<div><strong>Genre:</strong> ${random.Genre}</div>` : ''}
-                ${random.Seasons ? `<div><strong>Season:</strong> ${random.Seasons}</div>` : ''}
             `;
         }
 
