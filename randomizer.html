@@ -164,7 +164,7 @@
         function getHighRatedFougere() {
             const highFougere = fragrances.filter(f => {
                 const genre = (f.Genre || '').toLowerCase();
-                return genre.includes("fougere") && parseFloat(f.Rating) > 8.25;
+                return genre.includes("Fougere") && parseFloat(f.Rating) > 8.25;
             });
 
             if (highFougere.length === 0) {
