@@ -88,7 +88,7 @@
         }
 
         button {
-            background: #8b5cf6;
+            background: #0066cc;
             color: white;
             border: none;
             padding: 14px 32px;
@@ -119,11 +119,11 @@
     </header>
     
     <div class="random-card" id="random-card">
-        <p>Loading Fougères...</p>
+        <p>Loading random fragrance...</p>
     </div>
 
-    <div style="text-align:center; padding:10px;">
-        <button onclick="getHighRatedFougere()"> Random Fougère > 8.25</button>
+    <div style="text-align:center;">
+        <button onclick="getRandomFragrance()"> New Random Pick</button>
     </div>
 
     <script>
@@ -152,7 +152,7 @@
                                 return row;
                             });
                         
-                        getHighRatedFougere(); // Show one immediately
+                        getRandomFragrance(); // Show one random immediately
                     }
                 });
             } catch (e) {
@@ -161,23 +161,15 @@
             }
         }
 
-        function getHighRatedFougere() {
-            const highFougere = fragrances.filter(f => {
-                const genre = (f.Genre || '').toLowerCase();
-                return genre.includes("fougere") && parseFloat(f.Rating) > 8.25;
-            });
-
-            if (highFougere.length === 0) {
-                document.getElementById('random-card').innerHTML = `<p style="color:#ffaa00;">No Fougère with rating > 8.25 found</p>`;
-                return;
-            }
-
-            const random = highFougere[Math.floor(Math.random() * highFougere.length)];
+        function getRandomFragrance() {
+            if (fragrances.length === 0) return;
+            
+            const random = fragrances[Math.floor(Math.random() * fragrances.length)];
             
             document.getElementById('random-card').innerHTML = `
                 <div class="house">${random.House || ''}</div>
                 <div class="name">${random.Name || ''}</div>
-                <div style="margin-top: 20px; font-size: 1.3rem;">
+                <div style="margin-top: 15px; font-size: 1.3rem;">
                     Rating: <strong>${random.Rating || '?'}</strong> | 
                     Hours: <strong>${random['Hours of Performance'] || '?'}</strong> | 
                     Sillage: <strong>${random.Silliage || '?'}</strong>
