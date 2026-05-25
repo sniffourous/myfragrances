@@ -24,17 +24,47 @@
         }
         h1 { margin: 0; font-size: 2.2rem; }
 
-        .nav { position: absolute; top: 20px; left: 20px; }
-        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 8px; }
-        .hamburger span { width: 28px; height: 3px; background: #60a5fa; margin: 4px 0; }
-
-        .menu {
-            display: none; position: absolute; top: 65px; left: 20px; background: #1a1a1a;
-            border: 1px solid #333; border-radius: 8px; padding: 12px 0; min-width: 180px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1000;
+        .nav {
+            position: absolute;
+            top: 20px;
+            left: 20px;
         }
-        .menu a { display: block; padding: 12px 20px; color: #e0e0e0; text-decoration: none; }
-        .menu a:hover { background: #0066cc; color: white; }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .hamburger span {
+            width: 28px;
+            height: 3px;
+            background: #60a5fa;
+            margin: 4px 0;
+            transition: 0.3s;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 65px;
+            left: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 0;
+            min-width: 180px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #e0e0e0;
+            text-decoration: none;
+        }
+        .menu a:hover {
+            background: #0066cc;
+            color: white;
+        }
         .menu.active { display: block; }
 
         .random-card {
@@ -44,21 +74,28 @@
             padding: 30px;
             margin: 20px;
             text-align: center;
-            min-height: 280px;
         }
 
-        .house { font-size: 1.4rem; color: #aaa; }
-        .name { font-size: 2.5rem; color: #60a5fa; margin: 12px 0; }
+        .house {
+            font-size: 1.4rem;
+            color: #aaa;
+        }
+
+        .name {
+            font-size: 2.4rem;
+            color: #60a5fa;
+            margin: 12px 0;
+        }
 
         button {
-            background: #0066cc;
+            background: #8b5cf6;
             color: white;
             border: none;
             padding: 14px 32px;
             font-size: 1.1rem;
             border-radius: 50px;
             cursor: pointer;
-            margin: 8px;
+            margin: 10px;
         }
     </style>
 </head>
@@ -67,7 +104,9 @@
         <h1>Randomizer</h1>
         <div class="nav">
             <div class="hamburger" onclick="toggleMenu()">
-                <span></span><span></span><span></span>
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
             <div class="menu" id="menu">
                 <a href="index.html">Home</a>
@@ -80,12 +119,11 @@
     </header>
     
     <div class="random-card" id="random-card">
-        <p>Loading fragrances...</p>
+        <p>Loading Fougères...</p>
     </div>
 
     <div style="text-align:center; padding:10px;">
-        <button onclick="getRandomFragrance()"> Any Random Fragrance</button>
-        <button onclick="getFougereHighRating()" style="background:#8b5cf6;"> Fougere > 8.25</button>
+        <button onclick="getHighRatedFougere()"> Random Fougère > 8.25</button>
     </div>
 
     <script>
@@ -93,11 +131,9 @@
 
         async function loadCSV() {
             try {
-                const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
                 
-                const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(sheetUrl);
-                
-                const res = await fetch(proxyUrl + '?t=' + Date.now());
+                const res = await fetch(url + '?t=' + Date.now());
                 
                 if (!res.ok) throw new Error("Failed to load");
                 
@@ -116,7 +152,7 @@
                                 return row;
                             });
                         
-                        getRandomFragrance();
+                        getHighRatedFougere(); // Show one immediately
                     }
                 });
             } catch (e) {
@@ -125,35 +161,26 @@
             }
         }
 
-        function getRandomFragrance() {
-            if (fragrances.length === 0) return;
-            const random = fragrances[Math.floor(Math.random() * fragrances.length)];
-            displayFragrance(random);
-        }
-
-        function getFougereHighRating() {
-            const fougeres = fragrances.filter(f => {
+        function getHighRatedFougere() {
+            const highFougere = fragrances.filter(f => {
                 const genre = (f.Genre || '').toLowerCase();
                 return genre.includes("fougere") && parseFloat(f.Rating) > 8.25;
             });
-            
-            if (fougeres.length === 0) {
-                document.getElementById('random-card').innerHTML = `<p style="color:#ffaa00;">No Fougere > 8.25 found</p>`;
+
+            if (highFougere.length === 0) {
+                document.getElementById('random-card').innerHTML = `<p style="color:#ffaa00;">No Fougère with rating > 8.25 found</p>`;
                 return;
             }
-            
-            const random = fougeres[Math.floor(Math.random() * fougeres.length)];
-            displayFragrance(random);
-        }
 
-        function displayFragrance(f) {
+            const random = highFougere[Math.floor(Math.random() * highFougere.length)];
+            
             document.getElementById('random-card').innerHTML = `
-                <div class="house">${f.House || ''}</div>
-                <div class="name">${f.Name || ''}</div>
-                <div style="margin-top:20px; font-size:1.3rem;">
-                    Rating: <strong>${f.Rating || '?'}</strong> | 
-                    Hours: <strong>${f['Hours of Performance'] || '?'}</strong> | 
-                    Sillage: <strong>${f.Silliage || '?'}</strong>
+                <div class="house">${random.House || ''}</div>
+                <div class="name">${random.Name || ''}</div>
+                <div style="margin-top: 20px; font-size: 1.3rem;">
+                    Rating: <strong>${random.Rating || '?'}</strong> | 
+                    Hours: <strong>${random['Hours of Performance'] || '?'}</strong> | 
+                    Sillage: <strong>${random.Silliage || '?'}</strong>
                 </div>
             `;
         }
