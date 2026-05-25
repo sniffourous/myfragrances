@@ -160,7 +160,8 @@
 
     <div class="controls">
         <select id="season-filter" onchange="randomizeAll()">
-            <option value="Any">🌡️ Any Season</option>
+            <option value="Everything">🌍 Show Me Everything</option>
+            <option value="Any">🌡️ Any Season Only</option>
             <option value="Hot">☀️ Hot</option>
             <option value="Cold">❄️ Cold</option>
             <option value="Hot+Any">☀️ Hot + Any</option>
@@ -169,7 +170,7 @@
     </div>
 
     <div style="text-align:center;">
-        <button onclick="randomizeAll()">🎲 Randomize Everything</button>
+        <button onclick="randomizeAll()">🎲 Randomize</button>
     </div>
 
     <div class="cards-container" id="cards-container">
@@ -179,7 +180,7 @@
     <script>
         let fragrances = [];
         let genreMaxRatings = {};
-        let currentSeasonFilter = 'Any';
+        let currentSeasonFilter = 'Everything';
 
         async function loadCSV() {
             try {
@@ -230,10 +231,11 @@
         }
 
         function matchesSeason(row, filter) {
-            if (filter === 'Any') return true;
+            if (filter === 'Everything') return true;
             
             const seasons = (row.Seasons || '').toLowerCase();
             
+            if (filter === 'Any') return seasons.includes('any');
             if (filter === 'Hot') return seasons.includes('hot');
             if (filter === 'Cold') return seasons.includes('cold');
             if (filter === 'Hot+Any') return seasons.includes('hot') || seasons.includes('any');
