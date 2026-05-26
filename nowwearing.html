@@ -80,6 +80,7 @@
         th, td { 
             padding: 12px 10px; 
             border-bottom: 1px solid #333;
+            cursor: pointer;
         }
         th { 
             background: #1a1a1a; 
@@ -105,19 +106,35 @@
             white-space: normal; 
         }
 
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #e0e0e0;
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            border-top: 2px solid #60a5fa;
+            position: sticky;
+            bottom: 0;
+            z-index: 1000;
+            min-height: 80px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.6);
+        }
+        #footer-content {
+            margin-bottom: 8px;
+        }
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            max-width: 420px;
+            margin: 4px auto;
+            font-size: 0.95rem;
+        }
+
         /* Mobile improvements */
         @media (max-width: 768px) {
             table { min-width: 800px; }
             th, td { padding: 10px 8px; font-size: 0.95rem; }
             .notes { max-width: 280px; }
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px 20px;
-            color: #888;
-            background: #111;
-            border-top: 1px solid #333;
+            footer { padding: 16px 12px; }
         }
     </style>
 </head>
@@ -131,12 +148,12 @@
                 <span></span>
             </div>
             <div class="menu" id="menu">
-    <a href="index.html">Home</a>
-    <a href="layers.html">Layers</a>
-    <a href="nowwearing.html">Now Wearing</a>
-    <a href="top.html">Top Fragrances</a>
-     <a href="randomizer.html">Randomizer</a>
-</div>
+                <a href="index.html">Home</a>
+                <a href="layers.html">Layers</a>
+                <a href="nowwearing.html">Now Wearing</a>
+                <a href="top.html">Top Fragrances</a>
+                <a href="randomizer.html">Randomizer</a>
+            </div>
         </div>
     </header>
 
@@ -148,6 +165,7 @@
                     <th>Brand</th>
                     <th>Name</th>
                     <th>Rating</th>
+                    <th>Usage</th>
                     <th>Notes</th>
                 </tr>
             </thead>
@@ -155,13 +173,92 @@
         </table>
     </div>
 
-    <footer id="footer">
-        Loading recent wears...
+    <footer>
+        <div id="footer-content">
+            Loading recent wears...
+        </div>
     </footer>
 
     <script async src="//busuanzi.ibruce.info/busuanzi.pure.mini.js"></script>
 
     <script>
+        let fragranceData = [];
+
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            const parts = dateStr.split(/[/\-]/);
+            if (parts.length === 3) {
+                let month = parseInt(parts[0], 10);
+                let day = parseInt(parts[1], 10);
+                let year = parseInt(parts[2], 10);
+                if (year < 100) year += 2000;
+                return new Date(year, month - 1, day);
+            }
+            return new Date(dateStr);
+        }
+
+        function getFragranceStats(brand, name) {
+            const key = `\( {brand}| \){name}`.toLowerCase().trim();
+            const matches = fragranceData.filter(row => 
+                `\( {row.Brand}| \){row.Name}`.toLowerCase().trim() === key && row.Date
+            );
+
+            if (matches.length === 0) return null;
+
+            const sorted = [...matches].sort((a, b) => parseDate(b.Date) - parseDate(a.Date));
+
+            const now = new Date();
+            const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+
+            let countMonth = 0;
+            let countYear = 0;
+
+            sorted.forEach(row => {
+                const d = parseDate(row.Date);
+                if (!d) return;
+                if (d >= oneMonthAgo) countMonth++;
+                if (d >= oneYearAgo) countYear++;
+            });
+
+            return {
+                lastWorn: sorted[0].Date,
+                totalWears: matches.length,
+                countMonth,
+                countYear,
+                firstTime: matches.length === 1
+            };
+        }
+
+        function showFragranceStats(brand, name, rowDate) {
+            const stats = getFragranceStats(brand, name);
+            if (!stats) return;
+
+            const footerContent = document.getElementById('footer-content');
+            let html = `<strong>${brand} - ${name}</strong><br>`;
+
+            if (stats.firstTime) {
+                html += `<span style="color:#4ade80;">First time worn!</span>`;
+            } else {
+                html += `
+                    Last worn: ${stats.lastWorn}<br>
+                    Total wears: ${stats.totalWears}<br>
+                    Last 30 days: ${stats.countMonth} times<br>
+                    Last 12 months: ${stats.countYear} times
+                `;
+            }
+
+            html += `<br><small style="opacity:0.7;">This wear: ${rowDate}</small>`;
+            footerContent.innerHTML = html;
+        }
+
+        function resetFooter() {
+            document.getElementById('footer-content').innerHTML = `
+                <strong>${fragranceData.length}</strong> recent wears logged<br>
+                <small style="opacity:0.7;">Tap any row for fragrance stats</small>
+            `;
+        }
+
         async function loadNowWearing() {
             try {
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
@@ -171,9 +268,6 @@
                 if (!res.ok) throw new Error("HTTP error: " + res.status);
                 
                 const text = await res.text();
-                
-                if (!text || text.trim() === '') throw new Error("Empty response from Google");
-
                 Papa.parse(text, {
                     header: true,
                     skipEmptyLines: true,
@@ -187,28 +281,39 @@
                                 return row;
                             });
                         
+                        fragranceData = [...data];
                         data = data.reverse(); // newest first
                         
                         const tbody = document.querySelector('#nowwearing-table tbody');
                         tbody.innerHTML = data.map(row => `
-                            <tr>
+                            <tr data-brand="\( {row.Brand || ''}" data-name=" \){row.Name || ''}" data-date="${row.Date || ''}">
                                 <td class="date">${row.Date || ''}</td>
                                 <td>${row.Brand || ''}</td>
                                 <td><strong>${row.Name || ''}</strong></td>
                                 <td class="rating">${row.Rating || ''}</td>
+                                <td class="notes">${row.Usage || ''}</td>
                                 <td class="notes">${row.Notes || ''}</td>
                             </tr>
                         `).join('');
+
+                        // Click handlers
+                        tbody.querySelectorAll('tr').forEach(tr => {
+                            tr.addEventListener('click', function() {
+                                const brand = this.getAttribute('data-brand');
+                                const name = this.getAttribute('data-name');
+                                const date = this.getAttribute('data-date');
+                                if (brand && name) {
+                                    showFragranceStats(brand, name, date);
+                                }
+                            });
+                        });
                         
-                        document.getElementById('footer').innerHTML = `
-                            <div><strong>${data.length}</strong> recent wears logged</div>
-                            <div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">My Fragrance Collection</div>
-                        `;
+                        resetFooter();
                     }
                 });
             } catch (e) {
                 console.error("Load error:", e);
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading Google Sheet</strong><br><small>${e.message}</small>`;
+                document.getElementById('footer-content').innerHTML = `<strong style="color:#ff6666;">Error loading data</strong>`;
             }
         }
 
