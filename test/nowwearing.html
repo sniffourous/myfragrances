@@ -23,7 +23,6 @@
         }
         h1 { margin: 0; font-size: 2.2rem; }
 
-        /* Hamburger Menu */
         .nav {
             position: absolute;
             top: 20px;
@@ -40,7 +39,6 @@
             height: 3px;
             background: #60a5fa;
             margin: 4px 0;
-            transition: 0.3s;
         }
         .menu {
             display: none;
@@ -70,24 +68,24 @@
         /* Stats Card */
         #stats-card {
             margin: 16px;
-            padding: 18px;
+            padding: 20px;
             background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
             border-radius: 12px;
             border: 2px solid #60a5fa;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            min-height: 120px;
+            min-height: 140px;
         }
         #stats-card h3 {
-            margin: 0 0 12px 0;
+            margin: 0 0 14px 0;
             color: #60a5fa;
             text-align: center;
         }
         #stats-content {
+            line-height: 1.7;
             font-size: 0.98rem;
-            line-height: 1.6;
         }
         .stat-line {
-            margin: 8px 0;
+            margin: 6px 0;
         }
 
         .table-wrapper { 
@@ -101,7 +99,7 @@
             width: 100%;
         }
         th, td { 
-            padding: 14px 10px; 
+            padding: 16px 10px; 
             border-bottom: 1px solid #333;
         }
         th { 
@@ -113,29 +111,19 @@
         }
         
         tr {
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
         tr:hover, tr:active {
             background: #1f2a3a;
         }
         tr.tap-active {
-            background: #2a3a55;
+            background: #2a3a55 !important;
+            transform: scale(1.01);
         }
 
-        .date { 
-            text-align: center; 
-            font-weight: bold; 
-            white-space: nowrap;
-        }
-        .rating { 
-            text-align: center; 
-            color: #ffd700; 
-            font-weight: bold; 
-        }
-        .notes { 
-            max-width: 500px; 
-            white-space: normal; 
-        }
+        .date { text-align: center; font-weight: bold; white-space: nowrap; }
+        .rating { text-align: center; color: #ffd700; font-weight: bold; }
+        .notes { max-width: 500px; white-space: normal; }
 
         footer {
             text-align: center;
@@ -145,12 +133,10 @@
             border-top: 1px solid #333;
         }
 
-        /* Mobile improvements */
         @media (max-width: 768px) {
             table { min-width: 800px; }
-            th, td { padding: 14px 8px; font-size: 0.96rem; }
-            .notes { max-width: 280px; }
-            #stats-card { margin: 12px; padding: 16px; }
+            th, td { padding: 16px 8px; }
+            #stats-card { margin: 12px; padding: 18px; }
         }
     </style>
 </head>
@@ -173,11 +159,11 @@
         </div>
     </header>
 
-    <!-- New Stats Card -->
+    <!-- Stats Card -->
     <div id="stats-card">
-        <h3 id="stats-title">Tap a row to see fragrance stats</h3>
-        <div id="stats-content">
-            <p style="text-align:center; opacity:0.8;">Select any fragrance below to view wear history</p>
+        <h3 id="stats-title">Tap any row below 👇</h3>
+        <div id="stats-content" style="text-align:center; opacity:0.8;">
+            Fragrance history will appear here
         </div>
     </div>
 
@@ -222,19 +208,20 @@
         function getFragranceStats(brand, name) {
             const key = `\( {brand}| \){name}`.toLowerCase().trim();
             const matches = fragranceData.filter(row => 
-                `\( {row.Brand}| \){row.Name}`.toLowerCase().trim() === key && row.Date
+                `\( {row.Brand || ''}| \){row.Name || ''}`.toLowerCase().trim() === key && row.Date
             );
 
             if (matches.length === 0) return null;
 
-            const sorted = [...matches].sort((a, b) => parseDate(b.Date) - parseDate(a.Date));
+            const sorted = [...matches].sort((a, b) => {
+                return parseDate(b.Date) - parseDate(a.Date);
+            });
 
             const now = new Date();
             const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
             const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
 
-            let countMonth = 0;
-            let countYear = 0;
+            let countMonth = 0, countYear = 0;
 
             sorted.forEach(row => {
                 const d = parseDate(row.Date);
@@ -253,8 +240,13 @@
         }
 
         function updateStatsCard(brand, name, rowDate) {
+            console.log('Updating stats for:', brand, name); // Debug log
+
             const stats = getFragranceStats(brand, name);
-            if (!stats) return;
+            if (!stats) {
+                console.log('No stats found');
+                return;
+            }
 
             document.getElementById('stats-title').textContent = `${brand} - ${name}`;
 
@@ -281,10 +273,8 @@
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
                 
                 const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
-                
-                if (!res.ok) throw new Error("HTTP error: " + res.status);
-                
                 const text = await res.text();
+
                 Papa.parse(text, {
                     header: true,
                     skipEmptyLines: true,
@@ -299,11 +289,13 @@
                             });
                         
                         fragranceData = [...data];
-                        data = data.reverse(); // newest first
-                        
+                        data = data.reverse();
+
                         const tbody = document.querySelector('#nowwearing-table tbody');
                         tbody.innerHTML = data.map(row => `
-                            <tr data-brand="\( {row.Brand || ''}" data-name=" \){row.Name || ''}" data-date="${row.Date || ''}">
+                            <tr data-brand="${(row.Brand || '').replace(/"/g, '&quot;')}" 
+                                data-name="${(row.Name || '').replace(/"/g, '&quot;')}" 
+                                data-date="${(row.Date || '').replace(/"/g, '&quot;')}">
                                 <td class="date">${row.Date || ''}</td>
                                 <td>${row.Brand || ''}</td>
                                 <td><strong>${row.Name || ''}</strong></td>
@@ -313,27 +305,30 @@
                             </tr>
                         `).join('');
 
-                        // Tap / Click handlers
-                        tbody.querySelectorAll('tr').forEach(tr => {
+                        // Attach event listeners
+                        tbody.querySelectorAll('tr').forEach((tr, index) => {
                             const handleTap = () => {
+                                console.log(`Row ${index} tapped`); // Debug
                                 tr.classList.add('tap-active');
-                                setTimeout(() => tr.classList.remove('tap-active'), 180);
-                                
+                                setTimeout(() => tr.classList.remove('tap-active'), 250);
+
                                 const brand = tr.getAttribute('data-brand');
                                 const name = tr.getAttribute('data-name');
                                 const date = tr.getAttribute('data-date');
+
                                 if (brand && name) {
                                     updateStatsCard(brand, name, date);
                                 }
                             };
 
+                            tr.style.cursor = 'pointer';
                             tr.addEventListener('click', handleTap);
                             tr.addEventListener('touchend', (e) => {
                                 e.preventDefault();
                                 handleTap();
                             });
                         });
-                        
+
                         document.getElementById('footer').innerHTML = `
                             <strong>${data.length}</strong> recent wears logged
                         `;
@@ -341,19 +336,13 @@
                 });
             } catch (e) {
                 console.error("Load error:", e);
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading Google Sheet</strong>`;
+                document.getElementById('footer').innerHTML = `Error loading data`;
             }
         }
 
         function toggleMenu() {
             document.getElementById('menu').classList.toggle('active');
         }
-
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.nav')) {
-                document.getElementById('menu').classList.remove('active');
-            }
-        });
 
         window.onload = loadNowWearing;
     </script>
