@@ -79,7 +79,7 @@
     </header>
 
     <div id="stats-card">
-        <div class="version">v1.9 • Tap Fixed</div>
+        <div class="version">v2.0 • Fixed</div>
         <h3 id="stats-title">Tap any row below 👇</h3>
         <div id="stats-content" style="text-align:center; opacity:0.8;">
             Stats will appear here
@@ -208,10 +208,10 @@
                                 const date = tr.dataset.date;
 
                                 if (brand && name) {
-                                    // Fixed debug message
+                                    // Fixed display
                                     document.getElementById('stats-content').innerHTML = 
                                         `<strong style="color:#4ade80;">✓ TAP REGISTERED</strong><br><strong>${brand} - ${name}</strong>`;
-                                    setTimeout(() => updateStatsCard(brand, name, date), 700);
+                                    setTimeout(() => updateStatsCard(brand, name, date), 800);
                                 }
                             };
                             tr.addEventListener('click', handler);
