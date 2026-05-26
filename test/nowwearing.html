@@ -39,7 +39,8 @@
             background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
             border-radius: 12px;
             border: 2px solid #60a5fa;
-            min-height: 160px;
+            min-height: 170px;
+            position: relative;
         }
         #stats-title {
             margin: 0 0 12px 0;
@@ -51,19 +52,24 @@
             line-height: 1.6;
             font-size: 0.98rem;
         }
+        .version {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 0.75rem;
+            color: #555;
+            background: rgba(0,0,0,0.4);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
 
         .table-wrapper { padding: 0 16px 20px; overflow-x: auto; }
         table { min-width: 1000px; border-collapse: collapse; background: #111; width: 100%; }
         th, td { padding: 18px 10px; border-bottom: 1px solid #333; }
         th { background: #1a1a1a; color: #fff; position: sticky; top: 0; z-index: 10; }
 
-        tr {
-            transition: background 0.25s;
-        }
-        tr.tap-active {
-            background: #2a3a55 !important;
-        }
-        tr { cursor: pointer; }
+        tr { transition: background 0.25s; cursor: pointer; }
+        tr.tap-active { background: #2a3a55 !important; }
 
         .date { text-align: center; font-weight: bold; white-space: nowrap; }
         .rating { text-align: center; color: #ffd700; font-weight: bold; }
@@ -90,7 +96,8 @@
     </header>
 
     <div id="stats-card">
-        <h3 id="stats-title">Tap any row below</h3>
+        <div class="version">v1.3 • Tap Test</div>
+        <h3 id="stats-title">Tap any row below 👇</h3>
         <div id="stats-content" style="text-align:center; opacity:0.8;">
             Stats will appear here
         </div>
@@ -221,13 +228,7 @@
                                 const date = tr.dataset.date;
 
                                 if (brand && name) {
-                                    // Temporary debug message
-                                    document.getElementById('stats-content').innerHTML = 
-                                        `<strong style="color:#60a5fa;">✓ Row tapped!</strong><br>Trying to load stats for:<br><strong>${brand} - ${name}</strong>`;
-                                    
-                                    setTimeout(() => {
-                                        updateStatsCard(brand, name, date);
-                                    }, 400);
+                                    updateStatsCard(brand, name, date);
                                 }
                             };
 
