@@ -179,6 +179,7 @@
 
     <script>
         let fragrances = [];
+        let nowWearingData = [];
         let genreMaxRatings = {};
         let currentSeasonFilter = 'Everything';
 
@@ -187,8 +188,7 @@
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
                 
                 const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
-                
-                if (!res.ok) throw new Error("Failed to load");
+                if (!res.ok) throw new Error("Failed to load main CSV");
                 
                 const text = await res.text();
 
@@ -206,14 +206,65 @@
                             });
 
                         calculateGenreMaxRatings();
-                        createAllCards();
-                        randomizeAll(); // Initial random picks
+                        loadNowWearingCSV(); // Load wearing history after main data
                     }
                 });
             } catch (e) {
                 console.error(e);
                 document.getElementById('cards-container').innerHTML = `<p style="color:#ff6666; text-align:center;">Error loading collection</p>`;
             }
+        }
+
+        async function loadNowWearingCSV() {
+            try {
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
+                
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                if (!res.ok) throw new Error("Failed to load Now Wearing CSV");
+                
+                const text = await res.text();
+
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (result) => {
+                        nowWearingData = result.data
+                            .filter(row => row.Name && row.Name.trim())
+                            .map(row => {
+                                Object.keys(row).forEach(key => {
+                                    if (typeof row[key] === 'string') row[key] = row[key].trim();
+                                });
+                                return row;
+                            });
+
+                        createAllCards();
+                        randomizeAll(); // Initial random picks
+                    }
+                });
+            } catch (e) {
+                console.error("Could not load Now Wearing data:", e);
+                // Continue anyway without last worn data
+                createAllCards();
+                randomizeAll();
+            }
+        }
+
+        function getLastWorn(house, name) {
+            if (!nowWearingData.length || !house || !name) return null;
+
+            const matches = nowWearingData
+                .filter(row => {
+                    const rowHouse = (row.House || row.Brand || '').trim().toLowerCase();
+                    const rowName = (row.Name || '').trim().toLowerCase();
+                    return rowHouse === house.toLowerCase() && rowName === name.toLowerCase();
+                })
+                .sort((a, b) => {
+                    const dateA = new Date(a.Date || 0);
+                    const dateB = new Date(b.Date || 0);
+                    return dateB - dateA; // Most recent first
+                });
+
+            return matches.length > 0 ? matches[0].Date : null;
         }
 
         function calculateGenreMaxRatings() {
@@ -260,7 +311,6 @@
                     return rating === '' || rating === '0' || rating === '0.0';
                 });
             } else {
-                // Genre
                 const maxRating = genreMaxRatings[key];
                 if (!maxRating) return [];
                 const threshold = maxRating - 2;
@@ -272,7 +322,6 @@
                 });
             }
 
-            // Apply season filter
             return baseList.filter(row => matchesSeason(row, currentSeasonFilter));
         }
 
@@ -291,9 +340,7 @@
             const container = document.getElementById('cards-container');
             container.innerHTML = '';
 
-            // Only Bangers at the top
             container.appendChild(createCardElement('Only Bangers', 'bangers'));
-            
             container.appendChild(createCardElement('All Fragrances', 'all'));
             container.appendChild(createCardElement('Unrated Fragrances', 'unrated'));
 
@@ -305,6 +352,11 @@
         function updateCard(key, fragrance, count) {
             const card = document.getElementById(`card-${key.replace(/\s+/g, '-')}`);
             if (!card) return;
+
+            const lastWorn = getLastWorn(fragrance.House, fragrance.Name);
+            const lastWornHTML = lastWorn 
+                ? `<div><strong>Last Worn:</strong> ${lastWorn}</div>` 
+                : '';
 
             card.innerHTML = `
                 <div class="card-title">${key === 'bangers' ? 'Only Bangers' : key === 'all' ? 'All Fragrances' : key === 'unrated' ? 'Unrated Fragrances' : key}</div>
@@ -318,6 +370,7 @@
                 ${fragrance.Genre ? `<div><strong>Genre:</strong> ${fragrance.Genre}</div>` : ''}
                 ${fragrance.Seasons ? `<div><strong>Season:</strong> ${fragrance.Seasons}</div>` : ''}
                 ${fragrance.Perfumer ? `<div><strong>Perfumer:</strong> ${fragrance.Perfumer}</div>` : ''}
+                ${lastWornHTML}
                 <div class="count">
                     🎲 ${count} qualifying
                 </div>
