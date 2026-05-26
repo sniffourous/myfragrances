@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Fragrance Collection</title>
+    <title>Top Fragrances - My Fragrance Collection</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         body { 
@@ -72,15 +72,15 @@
             background: #111; 
             display: flex; 
             flex-wrap: wrap; 
-            gap: 8px; 
+            gap: 12px; 
             justify-content: center; 
             align-items: center;
             border-bottom: 1px solid #333;
         }
 
-        input, select { 
-            padding: 10px 12px; 
-            font-size: 15px; 
+        input, select, button { 
+            padding: 12px 16px; 
+            font-size: 16px; 
             border-radius: 8px; 
             background: #1f1f1f;
             color: #e0e0e0;
@@ -93,19 +93,6 @@
             border: none; 
             cursor: pointer;
             font-weight: bold;
-        }
-
-        .startover-btn { background: #d97706 !important; }
-        .export-btn { background: #15803d !important; }
-
-        button[onclick^="sortTable"],
-        .startover-btn,
-        .export-btn {
-            padding: 9px 14px;
-            font-size: 14px;
-            border-radius: 20px;
-            min-width: auto;
-            flex: 0 1 auto;
         }
 
         .table-wrapper { 
@@ -135,9 +122,7 @@
 
         td:nth-child(1), th:nth-child(1),
         td:nth-child(2), th:nth-child(2),
-        td:nth-child(7), th:nth-child(7),
-        td:nth-child(9), th:nth-child(9),
-        td:nth-child(11), th:nth-child(11) {
+        td:nth-child(9), th:nth-child(9) {
             text-align: left;
         }
 
@@ -145,8 +130,8 @@
         td:nth-child(4), th:nth-child(4),
         td:nth-child(5), th:nth-child(5),
         td:nth-child(6), th:nth-child(6),
-        td:nth-child(8), th:nth-child(8),
-        td:nth-child(10), th:nth-child(10) {
+        td:nth-child(7), th:nth-child(7),
+        td:nth-child(8), th:nth-child(8) {
             text-align: center;
         }
 
@@ -189,25 +174,12 @@
                 justify-content: center;
                 align-items: center;
             }
-            
-            button[onclick^="sortTable"],
-            .startover-btn,
-            .export-btn {
-                flex: 1 1 48%;
-                max-width: 48%;
-                padding: 9px 12px;
-                font-size: 13.5px;
-            }
-            
-            input, select {
-                width: 100%;
-            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>My Fragrance Collection</h1>
+        <h1>Top Fragrances</h1>
         <div class="nav">
             <div class="hamburger" onclick="toggleMenu()">
                 <span></span>
@@ -225,26 +197,7 @@
     </header>
     
     <div class="controls">
-        <input type="text" id="search" placeholder="Search House, Name, Notes..." style="flex:1; min-width:260px;" onkeyup="filterTable()">
         <div id="genre-filters"></div>
-        
-        <select id="season-filter" onchange="filterTable()">
-            <option value="">All Seasons</option>
-            <option value="Hot">Hot</option>
-            <option value="Cold">Cold</option>
-            <option value="Any">Any</option>
-            <option value="HotAny">Hot + Any</option>
-            <option value="ColdAny">Cold + Any</option>
-        </select>
-        
-        <button onclick="sortTable(0)">House</button>
-        <button onclick="sortTable(1)">Name</button>
-        <button onclick="sortTable(2)">Rating</button>
-        <button onclick="sortTable(3)">Hours</button>
-        <button onclick="sortTable(4)">Silliage</button>
-        <button onclick="sortTable(7)">Parfumo</button>
-
-        <button onclick="startOver()" class="startover-btn">Start Over</button>
         <button onclick="exportToCSV()" class="export-btn">Export To CSV</button>
     </div>
 
@@ -252,16 +205,14 @@
         <table id="fragrance-table">
             <thead>
                 <tr>
-                    <th onclick="sortTable(0)">House</th>
-                    <th onclick="sortTable(1)">Name</th>
-                    <th onclick="sortTable(2)">Rating</th>
-                    <th onclick="sortTable(3)">Hours</th>
-                    <th onclick="sortTable(4)">Silliage</th>
-                    <th onclick="sortTable(5)">Sprays</th>
-                    <th onclick="sortTable(6)">Genre</th>
-                    <th onclick="sortTable(7)">Parfumo</th>
-                    <th onclick="sortTable(8)">Season</th>
-                    <th onclick="sortTable(9)">ml</th>
+                    <th>House</th>
+                    <th>Name</th>
+                    <th>Rating</th>
+                    <th>Hours</th>
+                    <th>Silliage</th>
+                    <th>Genre</th>
+                    <th>Season</th>
+                    <th>ml</th>
                     <th>Notes / Comments</th>
                 </tr>
             </thead>
@@ -270,15 +221,13 @@
     </div>
 
     <footer id="footer">
-        Loading collection...
+        Loading top fragrances...
     </footer>
 
     <script>
         let fragrances = [];
         let currentGenres = new Set();
         let sortState = {};
-
-        const highFirst = [2, 3, 4, 7];
 
         async function loadCSV() {
             try {
@@ -305,9 +254,9 @@
                                 return row;
                             });
                         
-                        console.log("✅ Loaded", fragrances.length, "fragrances");
-                        renderTable(fragrances);
+                        console.log("✅ Loaded", fragrances.length, "fragrances for Top");
                         renderGenreButtons();
+                        showTopFragrances('All');
                         updateFooter();
                     }
                 });
@@ -318,18 +267,20 @@
         }
 
         function renderGenreButtons() {
-            const genres = [...new Set(fragrances.map(f => f.Genre).filter(Boolean))].sort();
+            const genres = ['All', ...new Set(fragrances.map(f => f.Genre).filter(Boolean))].sort();
             const container = document.getElementById('genre-filters');
-            container.innerHTML = '<strong>Genres:</strong> ';
+            container.innerHTML = '';
+            
             genres.forEach(g => {
                 const btn = document.createElement('button');
                 btn.className = 'genre-btn';
                 btn.textContent = g;
+                if (g === 'All') btn.classList.add('active');
+                
                 btn.onclick = () => {
-                    if (currentGenres.has(g)) currentGenres.delete(g);
-                    else currentGenres.add(g);
-                    btn.classList.toggle('active');
-                    filterTable();
+                    document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    showTopFragrances(g);
                 };
                 container.appendChild(btn);
             });
@@ -346,9 +297,7 @@
                     '<td>' + (f.Rating || '') + '</td>' +
                     '<td>' + (f['Hours of Performance'] || '') + '</td>' +
                     '<td>' + (f.Silliage || '') + '</td>' +
-                    '<td>' + (f.Sprays || '') + '</td>' +
                     '<td>' + (f.Genre || '') + '</td>' +
-                    '<td>' + (f['Parfumo Rating'] || '') + '</td>' +
                     '<td>' + (f.Seasons || '') + '</td>' +
                     '<td>' + (f.Size || '') + '</td>' +
                     '<td class="notes">' + (f.Notes || '') + ' <strong>' + (f.Comments || '') + '</strong></td>' +
@@ -357,27 +306,20 @@
             tbody.innerHTML = html;
         }
 
-        function filterTable() {
-            const term = document.getElementById('search').value.toLowerCase().trim();
-            const seasonFilter = document.getElementById('season-filter').value;
-            
-            const filtered = fragrances.filter(f => {
-                const matchSearch = !term || Object.values(f).some(v => v && String(v).toLowerCase().includes(term));
-                
-                let matchSeason = true;
-                if (seasonFilter) {
-                    if (seasonFilter === "Hot") matchSeason = f.Seasons === "Hot";
-                    else if (seasonFilter === "Cold") matchSeason = f.Seasons === "Cold";
-                    else if (seasonFilter === "Any") matchSeason = f.Seasons === "Any";
-                    else if (seasonFilter === "HotAny") matchSeason = (f.Seasons === "Hot" || f.Seasons === "Any");
-                    else if (seasonFilter === "ColdAny") matchSeason = (f.Seasons === "Cold" || f.Seasons === "Any");
-                }
-                
-                const matchGenre = currentGenres.size === 0 || currentGenres.has(f.Genre);
-                return matchSearch && matchSeason && matchGenre;
-            });
-            renderTable(filtered);
-            updateFooter(filtered);
+        function showTopFragrances(filter) {
+            let filtered = fragrances;
+
+            if (filter !== 'All') {
+                filtered = filtered.filter(f => f.Genre === filter);
+            }
+
+            const maxRating = filtered.length ? Math.max(...filtered.map(f => parseFloat(f.Rating) || 0)) : 0;
+            const threshold = Math.max(0, maxRating - 2);
+
+            const topData = filtered.filter(f => parseFloat(f.Rating) >= threshold)
+                                   .sort((a, b) => parseFloat(b.Rating) - parseFloat(a.Rating));
+
+            renderTable(topData);
         }
 
         function updateFooter(filteredData = null) {
@@ -389,26 +331,10 @@
                 if (!isNaN(size)) totalML += size;
             });
 
-            const isFiltered = currentGenres.size > 0 || 
-                             document.getElementById('search').value.trim() !== "" ||
-                             document.getElementById('season-filter').value !== "";
-
-            const label = isFiltered ? "filtered fragrances" : "fragrances";
-
             document.getElementById('footer').innerHTML = `
-                <strong>${total}</strong> ${label} • 
+                <strong>${total}</strong> top fragrances • 
                 <strong>${totalML.toLocaleString()}</strong> ml total
             `;
-        }
-
-        function startOver() {
-            currentGenres.clear();
-            document.getElementById('search').value = '';
-            document.getElementById('season-filter').value = '';
-            document.querySelectorAll('.genre-btn').forEach(btn => btn.classList.remove('active'));
-            sortState = {};
-            renderTable(fragrances);
-            updateFooter();
         }
 
         function exportToCSV() {
@@ -416,7 +342,7 @@
             const rows = Array.from(tbody.querySelectorAll('tr'));
             if (rows.length === 0) return alert("No data to export!");
 
-            let csv = "House,Name,Rating,Hours,Silliage,Sprays,Genre,Parfumo,Season,ml,Notes/Comments\n";
+            let csv = "House,Name,Rating,Hours,Silliage,Genre,Season,ml,Notes/Comments\n";
             rows.forEach(row => {
                 const cells = Array.from(row.cells).map(cell => `"${cell.textContent.trim().replace(/"/g, '""')}"`);
                 csv += cells.join(',') + '\n';
@@ -425,31 +351,8 @@
             const blob = new Blob([csv], { type: 'text/csv' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `Fragrance_Collection_${new Date().toISOString().slice(0,10)}.csv`;
+            link.download = `Top_Fragrances_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
-        }
-
-        function sortTable(colIndex) {
-            const tbody = document.querySelector('#fragrance-table tbody');
-            let rows = Array.from(tbody.querySelectorAll('tr'));
-            
-            if (sortState[colIndex] === undefined) {
-                sortState[colIndex] = highFirst.includes(colIndex) ? false : true;
-            } else {
-                sortState[colIndex] = !sortState[colIndex];
-            }
-            const ascending = sortState[colIndex];
-
-            rows.sort((a, b) => {
-                let x = a.cells[colIndex].textContent.trim();
-                let y = b.cells[colIndex].textContent.trim();
-                if (!isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
-                    return ascending ? parseFloat(x) - parseFloat(y) : parseFloat(y) - parseFloat(x);
-                }
-                return ascending ? x.localeCompare(y) : y.localeCompare(x);
-            });
-            
-            rows.forEach(row => tbody.appendChild(row));
         }
 
         function toggleMenu() {
