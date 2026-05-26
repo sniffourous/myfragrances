@@ -23,42 +23,102 @@
         }
         h1 { margin: 0; font-size: 2.2rem; }
 
-        .nav { position: absolute; top: 20px; left: 20px; }
-        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 8px; }
-        .hamburger span { width: 28px; height: 3px; background: #60a5fa; margin: 4px 0; }
-
-        .menu { display: none; position: absolute; top: 65px; left: 20px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px 0; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1000; }
-        .menu a { display: block; padding: 12px 20px; color: #e0e0e0; text-decoration: none; }
-        .menu a:hover, .menu a:active { background: #0066cc; color: white; }
+        /* Hamburger Menu */
+        .nav {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .hamburger span {
+            width: 28px;
+            height: 3px;
+            background: #60a5fa;
+            margin: 4px 0;
+            transition: 0.3s;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 65px;
+            left: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 0;
+            min-width: 180px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #e0e0e0;
+            text-decoration: none;
+        }
+        .menu a:hover {
+            background: #0066cc;
+            color: white;
+        }
         .menu.active { display: block; }
 
-        #stats-card {
-            margin: 16px;
-            padding: 20px;
-            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
-            border-radius: 12px;
-            border: 2px solid #60a5fa;
-            min-height: 170px;
-            position: relative;
+        .table-wrapper { 
+            padding: 20px; 
+            overflow-x: auto; 
         }
-        #stats-title { margin: 0 0 12px 0; color: #60a5fa; text-align: center; font-size: 1.1rem; }
-        #stats-content { line-height: 1.6; font-size: 0.98rem; }
-        .version { position: absolute; top: 12px; right: 12px; font-size: 0.75rem; color: #666; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px; }
+        table { 
+            min-width: 1000px; 
+            border-collapse: collapse; 
+            background: #111; 
+            width: 100%;
+        }
+        th, td { 
+            padding: 12px 10px; 
+            border-bottom: 1px solid #333;
+        }
+        th { 
+            background: #1a1a1a; 
+            color: #fff; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
+        }
+        tr:hover { background: #1f2a3a; }
 
-        .table-wrapper { padding: 0 16px 20px; overflow-x: auto; }
-        table { min-width: 1000px; border-collapse: collapse; background: #111; width: 100%; }
-        th, td { padding: 20px 10px; border-bottom: 1px solid #333; }
-        th { background: #1a1a1a; color: #fff; position: sticky; top: 0; z-index: 10; }
+        .date { 
+            text-align: center; 
+            font-weight: bold; 
+            white-space: nowrap;
+        }
+        .rating { 
+            text-align: center; 
+            color: #ffd700; 
+            font-weight: bold; 
+        }
+        .notes { 
+            max-width: 500px; 
+            white-space: normal; 
+        }
 
-        tr { transition: all 0.25s; cursor: pointer; }
-        tr.tap-active { background: #3a4a6a !important; transform: scale(1.01); }
+        /* Mobile improvements */
+        @media (max-width: 768px) {
+            table { min-width: 800px; }
+            th, td { padding: 10px 8px; font-size: 0.95rem; }
+            .notes { max-width: 280px; }
+        }
 
-        .date { text-align: center; font-weight: bold; white-space: nowrap; }
-        .rating { text-align: center; color: #ffd700; font-weight: bold; }
-        .notes { max-width: 500px; white-space: normal; }
-
-        footer { text-align: center; padding: 20px; color: #ccc; background: #111; border-top: 1px solid #333; }
-        button { background:#60a5fa; color:black; border:none; padding:10px 16px; border-radius:8px; font-weight:bold; margin:8px; }
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #888;
+            background: #111;
+            border-top: 1px solid #333;
+        }
     </style>
 </head>
 <body>
@@ -66,25 +126,18 @@
         <h1>Now Wearing</h1>
         <div class="nav">
             <div class="hamburger" onclick="toggleMenu()">
-                <span></span><span></span><span></span>
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
             <div class="menu" id="menu">
-                <a href="index.html">Home</a>
-                <a href="layers.html">Layers</a>
-                <a href="nowwearing.html">Now Wearing</a>
-                <a href="top.html">Top Fragrances</a>
-                <a href="randomizer.html">Randomizer</a>
-            </div>
+    <a href="index.html">Home</a>
+    <a href="layers.html">Layers</a>
+    <a href="nowwearing.html">Now Wearing</a>
+    <a href="top2.html">Top Fragrances</a>
+</div>
         </div>
     </header>
-
-    <div id="stats-card">
-        <div class="version">v2.0 • Fixed</div>
-        <h3 id="stats-title">Tap any row below 👇</h3>
-        <div id="stats-content" style="text-align:center; opacity:0.8;">
-            Stats will appear here
-        </div>
-    </div>
 
     <div class="table-wrapper">
         <table id="nowwearing-table">
@@ -94,7 +147,6 @@
                     <th>Brand</th>
                     <th>Name</th>
                     <th>Rating</th>
-                    <th>Usage</th>
                     <th>Notes</th>
                 </tr>
             </thead>
@@ -103,135 +155,56 @@
     </div>
 
     <footer id="footer">
-        <button onclick="loadNowWearing()">🔄 Refresh Data</button>
+        Loading recent wears...
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script async src="//busuanzi.ibruce.info/busuanzi.pure.mini.js"></script>
+
     <script>
-        let fragranceData = [];
-
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
-            const parts = dateStr.split(/[/\-]/);
-            if (parts.length === 3) {
-                let y = parseInt(parts[2]);
-                if (y < 100) y += 2000;
-                return new Date(y, parseInt(parts[0])-1, parseInt(parts[1]));
-            }
-            return new Date(dateStr);
-        }
-
-        function getFragranceStats(brand, name) {
-            const key = (brand + "|" + name).toLowerCase().trim();
-            const matches = fragranceData.filter(r => ((r.Brand || "") + "|" + (r.Name || "")).toLowerCase().trim() === key);
-            if (matches.length === 0) return null;
-
-            const sorted = [...matches].sort((a,b) => parseDate(b.Date) - parseDate(a.Date));
-            const now = new Date();
-            const monthAgo = new Date(now.getFullYear(), now.getMonth()-1, now.getDate());
-            const yearAgo = new Date(now.getFullYear()-1, now.getMonth(), now.getDate());
-
-            let m = 0, y = 0;
-            sorted.forEach(row => {
-                const d = parseDate(row.Date);
-                if (d >= monthAgo) m++;
-                if (d >= yearAgo) y++;
-            });
-
-            return { lastWorn: sorted[0].Date, total: matches.length, month: m, year: y, first: matches.length === 1 };
-        }
-
-        function updateStatsCard(brand, name, rowDate) {
-            const stats = getFragranceStats(brand, name);
-            if (!stats) return;
-
-            document.getElementById('stats-title').textContent = `${brand} - ${name}`;
-
-            let html = stats.first ? 
-                `<div style="color:#4ade80;font-weight:bold;">🎉 First time worn!</div>` : 
-                `<div><strong>Last Worn:</strong> ${stats.lastWorn}</div>
-                 <div><strong>Total Wears:</strong> ${stats.total}</div>
-                 <div><strong>Last 30 Days:</strong> ${stats.month} times</div>
-                 <div><strong>Last 12 Months:</strong> ${stats.year} times</div>`;
-
-            html += `<div style="margin-top:12px;opacity:0.7;"><small>This wear: ${rowDate}</small></div>`;
-            document.getElementById('stats-content').innerHTML = html;
-        }
-
         async function loadNowWearing() {
-            const footer = document.getElementById('footer');
-            const title = document.getElementById('stats-title');
-            const content = document.getElementById('stats-content');
-
-            title.textContent = "Loading...";
-            content.innerHTML = "Fetching data...";
-
             try {
-                const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
-                const url = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
-
-                const res = await fetch(url, { cache: 'no-store' });
+                const res = await fetch('NowWearing.csv?' + Date.now());
+                if (!res.ok) throw new Error("NowWearing.csv not found");
+                
                 const text = await res.text();
-
                 Papa.parse(text, {
                     header: true,
                     skipEmptyLines: true,
                     complete: (result) => {
-                        let data = result.data.filter(row => row.Date && row.Name)
-                            .map(row => {
-                                Object.keys(row).forEach(k => { if (typeof row[k]==='string') row[k] = row[k].trim(); });
-                                return row;
-                            });
-
-                        fragranceData = data;
-                        data = data.reverse();
-
+                        let data = result.data.filter(row => row.Date && row.Name);
+                        data = data.reverse(); // newest first
+                        
                         const tbody = document.querySelector('#nowwearing-table tbody');
                         tbody.innerHTML = data.map(row => `
-                            <tr data-brand="\( {row.Brand || ''}" data-name=" \){row.Name || ''}" data-date="${row.Date || ''}">
-                                <td class="date">${row.Date}</td>
-                                <td>${row.Brand}</td>
-                                <td><strong>${row.Name}</strong></td>
+                            <tr>
+                                <td class="date">${row.Date || ''}</td>
+                                <td>${row.Brand || ''}</td>
+                                <td><strong>${row.Name || ''}</strong></td>
                                 <td class="rating">${row.Rating || ''}</td>
-                                <td>${row.Usage || ''}</td>
-                                <td>${row.Notes || ''}</td>
+                                <td class="notes">${row.Notes || ''}</td>
                             </tr>
                         `).join('');
-
-                        tbody.querySelectorAll('tr').forEach(tr => {
-                            const handler = () => {
-                                tr.classList.add('tap-active');
-                                setTimeout(() => tr.classList.remove('tap-active'), 400);
-
-                                const brand = tr.dataset.brand;
-                                const name = tr.dataset.name;
-                                const date = tr.dataset.date;
-
-                                if (brand && name) {
-                                    // Fixed display
-                                    document.getElementById('stats-content').innerHTML = 
-                                        `<strong style="color:#4ade80;">✓ TAP REGISTERED</strong><br><strong>${brand} - ${name}</strong>`;
-                                    setTimeout(() => updateStatsCard(brand, name, date), 800);
-                                }
-                            };
-                            tr.addEventListener('click', handler);
-                            tr.addEventListener('touchend', e => { e.preventDefault(); handler(); });
-                        });
-
-                        footer.innerHTML = `<strong>${data.length}</strong> recent wears • <button onclick="loadNowWearing()">Refresh</button>`;
-                        title.textContent = "Tap any row below";
+                        
+                        document.getElementById('footer').innerHTML = `
+                            <div><strong>${data.length}</strong> recent wears logged</div>
+                            <div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">My Fragrance Collection</div>
+                        `;
                     }
                 });
             } catch (e) {
-                title.textContent = "Failed to load";
-                content.innerHTML = "Tap Refresh below";
-                footer.innerHTML = `<button onclick="loadNowWearing()">🔄 Try Again</button>`;
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading NowWearing.csv</strong>`;
             }
         }
 
         function toggleMenu() {
             document.getElementById('menu').classList.toggle('active');
         }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav')) {
+                document.getElementById('menu').classList.remove('active');
+            }
+        });
 
         window.onload = loadNowWearing;
     </script>
