@@ -247,8 +247,14 @@
         function getFilteredFragrances(key) {
             let baseList;
 
-            if (key === 'all') baseList = fragrances;
-            else if (key === 'unrated') {
+            if (key === 'bangers') {
+                baseList = fragrances.filter(row => {
+                    const rating = parseFloat(row.Rating);
+                    return !isNaN(rating) && rating > 8.5;
+                });
+            } else if (key === 'all') {
+                baseList = fragrances;
+            } else if (key === 'unrated') {
                 baseList = fragrances.filter(row => {
                     const rating = (row.Rating || '').trim();
                     return rating === '' || rating === '0' || rating === '0.0';
@@ -285,6 +291,9 @@
             const container = document.getElementById('cards-container');
             container.innerHTML = '';
 
+            // Only Bangers at the top
+            container.appendChild(createCardElement('Only Bangers', 'bangers'));
+            
             container.appendChild(createCardElement('All Fragrances', 'all'));
             container.appendChild(createCardElement('Unrated Fragrances', 'unrated'));
 
@@ -298,7 +307,7 @@
             if (!card) return;
 
             card.innerHTML = `
-                <div class="card-title">${key === 'all' ? 'All Fragrances' : key === 'unrated' ? 'Unrated Fragrances' : key}</div>
+                <div class="card-title">${key === 'bangers' ? 'Only Bangers' : key === 'all' ? 'All Fragrances' : key === 'unrated' ? 'Unrated Fragrances' : key}</div>
                 <div class="house">${fragrance.House || ''}</div>
                 <div class="name">${fragrance.Name || ''}</div>
                 <div style="margin:20px 0; font-size:1.2rem; color:#aaa;">
@@ -317,7 +326,7 @@
         function randomizeAll() {
             currentSeasonFilter = document.getElementById('season-filter').value;
             
-            const keys = ['all', 'unrated', ...Object.keys(genreMaxRatings)];
+            const keys = ['bangers', 'all', 'unrated', ...Object.keys(genreMaxRatings)];
 
             keys.forEach(key => {
                 const filtered = getFilteredFragrances(key);
@@ -325,7 +334,7 @@
                     const card = document.getElementById(`card-${key.replace(/\s+/g, '-')}`);
                     if (card) {
                         card.innerHTML = `
-                            <div class="card-title">${key === 'all' ? 'All Fragrances' : key === 'unrated' ? 'Unrated Fragrances' : key}</div>
+                            <div class="card-title">${key === 'bangers' ? 'Only Bangers' : key === 'all' ? 'All Fragrances' : key === 'unrated' ? 'Unrated Fragrances' : key}</div>
                             <p style="color:#ffcc66;">No matching fragrances for this filter.</p>
                         `;
                     }
