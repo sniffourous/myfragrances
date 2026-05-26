@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Fragrances - My Fragrance Collection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            background: #0a0a0a; 
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            color: white;
+            padding: 1.8rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+        h1 { margin: 0; font-size: 2.2rem; }
+
+        .nav {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .hamburger span {
+            width: 28px;
+            height: 3px;
+            background: #60a5fa;
+            margin: 4px 0;
+            transition: 0.3s;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 65px;
+            left: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 0;
+            min-width: 180px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #e0e0e0;
+            text-decoration: none;
+        }
+        .menu a:hover {
+            background: #0066cc;
+            color: white;
+        }
+        .menu.active { display: block; }
+
+        .controls { 
+            padding: 16px 20px 12px; 
+            background: #111; 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            justify-content: center; 
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        input, select, button { 
+            padding: 12px 16px; 
+            font-size: 16px; 
+            border-radius: 8px; 
+            background: #1f1f1f;
+            color: #e0e0e0;
+            border: 1px solid #444;
+        }
+
+        button { 
+            background: #0066cc; 
+            color: white; 
+            border: none; 
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .table-wrapper { 
+            padding: 0 20px 20px; 
+            overflow-x: auto; 
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+        table { 
+            min-width: 1450px; 
+            border-collapse: collapse; 
+            background: #111; 
+            width: 100%;
+        }
+        th, td { 
+            padding: 12px 10px; 
+            border-bottom: 1px solid #333;
+        }
+        th { 
+            background: #1a1a1a; 
+            color: #fff; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
+        }
+        tr:hover { background: #1f2a3a; }
+
+        td:nth-child(1), th:nth-child(1),
+        td:nth-child(2), th:nth-child(2),
+        td:nth-child(9), th:nth-child(9) {
+            text-align: left;
+        }
+
+        td:nth-child(3), th:nth-child(3),
+        td:nth-child(4), th:nth-child(4),
+        td:nth-child(5), th:nth-child(5),
+        td:nth-child(6), th:nth-child(6),
+        td:nth-child(7), th:nth-child(7),
+        td:nth-child(8), th:nth-child(8) {
+            text-align: center;
+        }
+
+        .genre-btn { 
+            padding: 8px 16px; 
+            margin: 4px; 
+            border: 2px solid #0066cc; 
+            background: #1f1f1f; 
+            color: #4da6ff; 
+            border-radius: 30px; 
+            cursor: pointer; 
+            font-weight: 600;
+        }
+        .genre-btn.active { 
+            background: #0066cc; 
+            color: white; 
+        }
+
+        .notes { 
+            min-width: 450px; 
+            white-space: normal !important; 
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #888;
+            font-size: 0.95rem;
+            background: #111;
+        }
+
+        @media (max-width: 768px) {
+            table { min-width: 1100px; }
+            th, td { padding: 10px 6px; font-size: 0.95rem; }
+            .notes { min-width: 280px; }
+            
+            .controls { 
+                flex-direction: row; 
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Top Fragrances</h1>
+        <div class="nav">
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="menu" id="menu">
+                <a href="index.html">Home</a>
+                <a href="layers.html">Layers</a>
+                <a href="nowwearing.html">Now Wearing</a>
+                <a href="top.html">Top Fragrances</a>
+                 <a href="randomizer.html">Randomizer</a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="controls">
+        <div id="genre-filters"></div>
+        <button onclick="exportToCSV()" class="export-btn">Export To CSV</button>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="fragrance-table">
+            <thead>
+                <tr>
+                    <th>House</th>
+                    <th>Name</th>
+                    <th>Rating</th>
+                    <th>Hours</th>
+                    <th>Silliage</th>
+                    <th>Genre</th>
+                    <th>Season</th>
+                    <th>ml</th>
+                    <th>Notes / Comments</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <footer id="footer">
+        Loading top fragrances...
+    </footer>
+
+    <script>
+        let fragrances = [];
+        let currentGenres = new Set();
+        let sortState = {};
+
+        async function loadCSV() {
+            try {
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
+                
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                
+                if (!res.ok) throw new Error("HTTP error: " + res.status);
+                
+                const text = await res.text();
+                
+                if (!text || text.trim() === '') throw new Error("Empty response from Google");
+
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (result) => {
+                        fragrances = result.data
+                            .filter(row => row.Name && row.Name.trim())
+                            .map(row => {
+                                Object.keys(row).forEach(key => {
+                                    if (typeof row[key] === 'string') row[key] = row[key].trim();
+                                });
+                                return row;
+                            });
+                        
+                        console.log("✅ Loaded", fragrances.length, "fragrances for Top");
+                        renderGenreButtons();
+                        showTopFragrances('All');
+                        updateFooter();
+                    }
+                });
+            } catch (e) {
+                console.error("Load error:", e);
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading Google Sheet</strong><br><small>${e.message}</small>`;
+            }
+        }
+
+        function renderGenreButtons() {
+            const genres = ['All', ...new Set(fragrances.map(f => f.Genre).filter(Boolean))].sort();
+            const container = document.getElementById('genre-filters');
+            container.innerHTML = '';
+            
+            genres.forEach(g => {
+                const btn = document.createElement('button');
+                btn.className = 'genre-btn';
+                btn.textContent = g;
+                if (g === 'All') btn.classList.add('active');
+                
+                btn.onclick = () => {
+                    document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    showTopFragrances(g);
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderTable(data) {
+            const tbody = document.querySelector('#fragrance-table tbody');
+            let html = '';
+            for (let i = 0; i < data.length; i++) {
+                const f = data[i];
+                html += '<tr>' +
+                    '<td>' + (f.House || '') + '</td>' +
+                    '<td><strong>' + (f.Name || '') + '</strong></td>' +
+                    '<td>' + (f.Rating || '') + '</td>' +
+                    '<td>' + (f['Hours of Performance'] || '') + '</td>' +
+                    '<td>' + (f.Silliage || '') + '</td>' +
+                    '<td>' + (f.Genre || '') + '</td>' +
+                    '<td>' + (f.Seasons || '') + '</td>' +
+                    '<td>' + (f.Size || '') + '</td>' +
+                    '<td class="notes">' + (f.Notes || '') + ' <strong>' + (f.Comments || '') + '</strong></td>' +
+                    '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function showTopFragrances(filter) {
+            let filtered = fragrances;
+
+            if (filter !== 'All') {
+                filtered = filtered.filter(f => f.Genre === filter);
+            }
+
+            const maxRating = filtered.length ? Math.max(...filtered.map(f => parseFloat(f.Rating) || 0)) : 0;
+            const threshold = Math.max(0, maxRating - 2);
+
+            const topData = filtered.filter(f => parseFloat(f.Rating) >= threshold)
+                                   .sort((a, b) => parseFloat(b.Rating) - parseFloat(a.Rating));
+
+            renderTable(topData);
+        }
+
+        function updateFooter(filteredData = null) {
+            const data = filteredData || fragrances;
+            const total = data.length;
+            let totalML = 0;
+            data.forEach(f => {
+                const size = parseFloat(f.Size);
+                if (!isNaN(size)) totalML += size;
+            });
+
+            document.getElementById('footer').innerHTML = `
+                <strong>${total}</strong> top fragrances • 
+                <strong>${totalML.toLocaleString()}</strong> ml total
+            `;
+        }
+
+        function exportToCSV() {
+            const tbody = document.querySelector('#fragrance-table tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            if (rows.length === 0) return alert("No data to export!");
+
+            let csv = "House,Name,Rating,Hours,Silliage,Genre,Season,ml,Notes/Comments\n";
+            rows.forEach(row => {
+                const cells = Array.from(row.cells).map(cell => `"${cell.textContent.trim().replace(/"/g, '""')}"`);
+                csv += cells.join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Top_Fragrances_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        function toggleMenu() {
+            document.getElementById('menu').classList.toggle('active');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav')) {
+                document.getElementById('menu').classList.remove('active');
+            }
+        });
+
+        window.onload = loadCSV;
+    </script>
+</body>
+</html>
