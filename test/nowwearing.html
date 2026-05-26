@@ -23,102 +23,39 @@
         }
         h1 { margin: 0; font-size: 2.2rem; }
 
-        /* Hamburger Menu */
-        .nav {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-        }
-        .hamburger {
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            padding: 8px;
-        }
-        .hamburger span {
-            width: 28px;
-            height: 3px;
-            background: #60a5fa;
-            margin: 4px 0;
-            transition: 0.3s;
-        }
-        .menu {
-            display: none;
-            position: absolute;
-            top: 65px;
-            left: 20px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px 0;
-            min-width: 180px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            z-index: 1000;
-        }
-        .menu a {
-            display: block;
-            padding: 12px 20px;
-            color: #e0e0e0;
-            text-decoration: none;
-        }
-        .menu a:hover {
-            background: #0066cc;
-            color: white;
-        }
+        .nav { position: absolute; top: 20px; left: 20px; }
+        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 8px; }
+        .hamburger span { width: 28px; height: 3px; background: #60a5fa; margin: 4px 0; }
+
+        .menu { display: none; position: absolute; top: 65px; left: 20px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px 0; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1000; }
+        .menu a { display: block; padding: 12px 20px; color: #e0e0e0; text-decoration: none; }
+        .menu a:hover { background: #0066cc; color: white; }
         .menu.active { display: block; }
 
-        .table-wrapper { 
-            padding: 20px; 
-            overflow-x: auto; 
-        }
-        table { 
-            min-width: 1000px; 
-            border-collapse: collapse; 
-            background: #111; 
-            width: 100%;
-        }
-        th, td { 
-            padding: 12px 10px; 
-            border-bottom: 1px solid #333;
-        }
-        th { 
-            background: #1a1a1a; 
-            color: #fff; 
-            position: sticky; 
-            top: 0; 
-            z-index: 10;
-        }
-        tr:hover { background: #1f2a3a; }
-
-        .date { 
-            text-align: center; 
-            font-weight: bold; 
-            white-space: nowrap;
-        }
-        .rating { 
-            text-align: center; 
-            color: #ffd700; 
-            font-weight: bold; 
-        }
-        .notes { 
-            max-width: 500px; 
-            white-space: normal; 
-        }
-
-        /* Mobile improvements */
-        @media (max-width: 768px) {
-            table { min-width: 800px; }
-            th, td { padding: 10px 8px; font-size: 0.95rem; }
-            .notes { max-width: 280px; }
-        }
-
-        footer {
+        /* Stats Card - v3.1 */
+        #stats-card {
+            margin: 16px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            border-radius: 12px;
+            border: 2px solid #60a5fa;
             text-align: center;
-            padding: 30px 20px;
-            color: #888;
-            background: #111;
-            border-top: 1px solid #333;
         }
+        #stats-title { margin: 0 0 8px 0; color: #60a5fa; font-size: 1.2rem; }
+        #stats-content { font-size: 1.15rem; font-weight: bold; min-height: 70px; }
+
+        .table-wrapper { padding: 20px; overflow-x: auto; }
+        table { min-width: 1000px; border-collapse: collapse; background: #111; width: 100%; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid #333; cursor: pointer; }
+        th { background: #1a1a1a; color: #fff; position: sticky; top: 0; z-index: 10; }
+        tr:hover { background: #1f2a3a; }
+        tr.tap-active { background: #3a4a6a !important; }
+
+        .date { text-align: center; font-weight: bold; white-space: nowrap; }
+        .rating { text-align: center; color: #ffd700; font-weight: bold; }
+        .notes { max-width: 500px; white-space: normal; }
+
+        footer { text-align: center; padding: 30px 20px; color: #888; background: #111; border-top: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -126,18 +63,23 @@
         <h1>Now Wearing</h1>
         <div class="nav">
             <div class="hamburger" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </div>
             <div class="menu" id="menu">
-    <a href="index.html">Home</a>
-    <a href="layers.html">Layers</a>
-    <a href="nowwearing.html">Now Wearing</a>
-    <a href="top2.html">Top Fragrances</a>
-</div>
+                <a href="index.html">Home</a>
+                <a href="layers.html">Layers</a>
+                <a href="nowwearing.html">Now Wearing</a>
+                <a href="top.html">Top Fragrances</a>
+                <a href="randomizer.html">Randomizer</a>
+            </div>
         </div>
     </header>
+
+    <!-- Stats Card v3.1 -->
+    <div id="stats-card">
+        <h3 id="stats-title">v3.1 - Tap a row below</h3>
+        <div id="stats-content"></div>
+    </div>
 
     <div class="table-wrapper">
         <table id="nowwearing-table">
@@ -147,6 +89,7 @@
                     <th>Brand</th>
                     <th>Name</th>
                     <th>Rating</th>
+                    <th>Usage</th>
                     <th>Notes</th>
                 </tr>
             </thead>
@@ -154,57 +97,66 @@
         </table>
     </div>
 
-    <footer id="footer">
-        Loading recent wears...
-    </footer>
+    <footer id="footer">Loading recent wears...</footer>
 
-    <script async src="//busuanzi.ibruce.info/busuanzi.pure.mini.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script>
         async function loadNowWearing() {
             try {
-                const res = await fetch('NowWearing.csv?' + Date.now());
-                if (!res.ok) throw new Error("NowWearing.csv not found");
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
                 
+                const res = await fetch(url + '?t=' + Date.now());
                 const text = await res.text();
+
                 Papa.parse(text, {
                     header: true,
                     skipEmptyLines: true,
                     complete: (result) => {
-                        let data = result.data.filter(row => row.Date && row.Name);
-                        data = data.reverse(); // newest first
+                        let data = result.data.filter(row => row.Date && row.Name)
+                            .map(row => {
+                                Object.keys(row).forEach(key => {
+                                    if (typeof row[key] === 'string') row[key] = row[key].trim();
+                                });
+                                return row;
+                            });
                         
+                        data = data.reverse();
+
                         const tbody = document.querySelector('#nowwearing-table tbody');
                         tbody.innerHTML = data.map(row => `
-                            <tr>
+                            <tr data-brand="\( {row.Brand || ''}" data-name=" \){row.Name || ''}">
                                 <td class="date">${row.Date || ''}</td>
                                 <td>${row.Brand || ''}</td>
                                 <td><strong>${row.Name || ''}</strong></td>
                                 <td class="rating">${row.Rating || ''}</td>
+                                <td class="notes">${row.Usage || ''}</td>
                                 <td class="notes">${row.Notes || ''}</td>
                             </tr>
                         `).join('');
+
+                        // Tap handler
+                        tbody.querySelectorAll('tr').forEach(tr => {
+                            tr.addEventListener('click', () => {
+                                tr.classList.add('tap-active');
+                                setTimeout(() => tr.classList.remove('tap-active'), 250);
+
+                                const brand = tr.getAttribute('data-brand') || '';
+                                const name = tr.getAttribute('data-name') || '';
+                                document.getElementById('stats-content').innerHTML = `<strong>${brand} - ${name}</strong>`;
+                            });
+                        });
                         
-                        document.getElementById('footer').innerHTML = `
-                            <div><strong>${data.length}</strong> recent wears logged</div>
-                            <div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">My Fragrance Collection</div>
-                        `;
+                        document.getElementById('footer').innerHTML = `<strong>${data.length}</strong> recent wears logged`;
                     }
                 });
             } catch (e) {
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading NowWearing.csv</strong>`;
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading CSV</strong>`;
             }
         }
 
         function toggleMenu() {
             document.getElementById('menu').classList.toggle('active');
         }
-
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.nav')) {
-                document.getElementById('menu').classList.remove('active');
-            }
-        });
 
         window.onload = loadNowWearing;
     </script>
