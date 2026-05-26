@@ -67,8 +67,31 @@
         }
         .menu.active { display: block; }
 
+        /* Stats Card */
+        #stats-card {
+            margin: 16px;
+            padding: 18px;
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            border-radius: 12px;
+            border: 2px solid #60a5fa;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            min-height: 120px;
+        }
+        #stats-card h3 {
+            margin: 0 0 12px 0;
+            color: #60a5fa;
+            text-align: center;
+        }
+        #stats-content {
+            font-size: 0.98rem;
+            line-height: 1.6;
+        }
+        .stat-line {
+            margin: 8px 0;
+        }
+
         .table-wrapper { 
-            padding: 20px; 
+            padding: 0 16px 20px; 
             overflow-x: auto; 
         }
         table { 
@@ -116,21 +139,10 @@
 
         footer {
             text-align: center;
-            padding: 18px 12px;
-            color: #e0e0e0;
-            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
-            border-top: 3px solid #60a5fa;
-            position: sticky;
-            bottom: 0;
-            z-index: 1000;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.7);
-            min-height: 85px;
-        }
-        #footer-content {
-            font-size: 0.97rem;
-        }
-        .stat {
-            margin: 5px 0;
+            padding: 20px;
+            color: #888;
+            background: #111;
+            border-top: 1px solid #333;
         }
 
         /* Mobile improvements */
@@ -138,7 +150,7 @@
             table { min-width: 800px; }
             th, td { padding: 14px 8px; font-size: 0.96rem; }
             .notes { max-width: 280px; }
-            footer { padding: 16px 10px; }
+            #stats-card { margin: 12px; padding: 16px; }
         }
     </style>
 </head>
@@ -161,6 +173,14 @@
         </div>
     </header>
 
+    <!-- New Stats Card -->
+    <div id="stats-card">
+        <h3 id="stats-title">Tap a row to see fragrance stats</h3>
+        <div id="stats-content">
+            <p style="text-align:center; opacity:0.8;">Select any fragrance below to view wear history</p>
+        </div>
+    </div>
+
     <div class="table-wrapper">
         <table id="nowwearing-table">
             <thead>
@@ -177,10 +197,8 @@
         </table>
     </div>
 
-    <footer>
-        <div id="footer-content">
-            Loading recent wears...
-        </div>
+    <footer id="footer">
+        Loading recent wears...
     </footer>
 
     <script async src="//busuanzi.ibruce.info/busuanzi.pure.mini.js"></script>
@@ -234,33 +252,28 @@
             };
         }
 
-        function showFragranceStats(brand, name, rowDate) {
+        function updateStatsCard(brand, name, rowDate) {
             const stats = getFragranceStats(brand, name);
             if (!stats) return;
 
-            const footerContent = document.getElementById('footer-content');
-            let html = `<strong>${brand} - ${name}</strong><br>`;
+            document.getElementById('stats-title').textContent = `${brand} - ${name}`;
+
+            const content = document.getElementById('stats-content');
+            let html = '';
 
             if (stats.firstTime) {
-                html += `<span style="color:#4ade80;">🎉 First time worn!</span>`;
+                html += `<div class="stat-line" style="color:#4ade80; font-weight:bold;">🎉 First time worn!</div>`;
             } else {
                 html += `
-                    Last worn: ${stats.lastWorn}<br>
-                    Total wears: ${stats.totalWears}<br>
-                    Last 30 days: ${stats.countMonth} times<br>
-                    Last 12 months: ${stats.countYear} times
+                    <div class="stat-line"><strong>Last Worn:</strong> ${stats.lastWorn}</div>
+                    <div class="stat-line"><strong>Total Wears:</strong> ${stats.totalWears}</div>
+                    <div class="stat-line"><strong>Last 30 Days:</strong> ${stats.countMonth} times</div>
+                    <div class="stat-line"><strong>Last 12 Months:</strong> ${stats.countYear} times</div>
                 `;
             }
 
-            html += `<br><small style="opacity:0.75;">This wear: ${rowDate}</small>`;
-            footerContent.innerHTML = html;
-        }
-
-        function resetFooter() {
-            document.getElementById('footer-content').innerHTML = `
-                <strong>${fragranceData.length}</strong> recent wears logged<br>
-                <small style="opacity:0.75;">Tap any row for fragrance history</small>
-            `;
+            html += `<div class="stat-line" style="margin-top:12px; opacity:0.8;"><small>This wear: ${rowDate}</small></div>`;
+            content.innerHTML = html;
         }
 
         async function loadNowWearing() {
@@ -300,17 +313,17 @@
                             </tr>
                         `).join('');
 
-                        // Add tap/click handlers
+                        // Tap / Click handlers
                         tbody.querySelectorAll('tr').forEach(tr => {
                             const handleTap = () => {
                                 tr.classList.add('tap-active');
-                                setTimeout(() => tr.classList.remove('tap-active'), 200);
+                                setTimeout(() => tr.classList.remove('tap-active'), 180);
                                 
                                 const brand = tr.getAttribute('data-brand');
                                 const name = tr.getAttribute('data-name');
                                 const date = tr.getAttribute('data-date');
                                 if (brand && name) {
-                                    showFragranceStats(brand, name, date);
+                                    updateStatsCard(brand, name, date);
                                 }
                             };
 
@@ -321,12 +334,14 @@
                             });
                         });
                         
-                        resetFooter();
+                        document.getElementById('footer').innerHTML = `
+                            <strong>${data.length}</strong> recent wears logged
+                        `;
                     }
                 });
             } catch (e) {
                 console.error("Load error:", e);
-                document.getElementById('footer-content').innerHTML = `<strong style="color:#ff6666;">Error loading data</strong>`;
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading Google Sheet</strong>`;
             }
         }
 
