@@ -67,27 +67,6 @@
         }
         .menu.active { display: block; }
 
-        /* Stats Card */
-        #stats-card {
-            margin: 16px;
-            padding: 20px;
-            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
-            border-radius: 12px;
-            border: 2px solid #60a5fa;
-            min-height: 160px;
-            position: relative;
-        }
-        #stats-title {
-            margin: 0 0 12px 0;
-            color: #60a5fa;
-            text-align: center;
-            font-size: 1.1rem;
-        }
-        #stats-content {
-            line-height: 1.6;
-            font-size: 0.98rem;
-        }
-
         .table-wrapper { 
             padding: 20px; 
             overflow-x: auto; 
@@ -101,7 +80,6 @@
         th, td { 
             padding: 12px 10px; 
             border-bottom: 1px solid #333;
-            cursor: pointer;
         }
         th { 
             background: #1a1a1a; 
@@ -111,7 +89,6 @@
             z-index: 10;
         }
         tr:hover { background: #1f2a3a; }
-        tr.tap-active { background: #3a4a6a !important; }
 
         .date { 
             text-align: center; 
@@ -154,22 +131,14 @@
                 <span></span>
             </div>
             <div class="menu" id="menu">
-                <a href="index.html">Home</a>
-                <a href="layers.html">Layers</a>
-                <a href="nowwearing.html">Now Wearing</a>
-                <a href="top.html">Top Fragrances</a>
-                <a href="randomizer.html">Randomizer</a>
-            </div>
+    <a href="index.html">Home</a>
+    <a href="layers.html">Layers</a>
+    <a href="nowwearing.html">Now Wearing</a>
+    <a href="top.html">Top Fragrances</a>
+     <a href="randomizer.html">Randomizer</a>
+</div>
         </div>
     </header>
-
-    <!-- Stats Card -->
-    <div id="stats-card">
-        <h3 id="stats-title">Tap any row below </h3>
-        <div id="stats-content" style="text-align:center; opacity:0.8;">
-            Fragrance stats will appear here
-        </div>
-    </div>
 
     <div class="table-wrapper">
         <table id="nowwearing-table">
@@ -194,70 +163,6 @@
     <script async src="//busuanzi.ibruce.info/busuanzi.pure.mini.js"></script>
 
     <script>
-        let fragranceData = [];
-
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
-            const parts = dateStr.split(/[/\-]/);
-            if (parts.length === 3) {
-                let y = parseInt(parts[2]);
-                if (y < 100) y += 2000;
-                return new Date(y, parseInt(parts[0])-1, parseInt(parts[1]));
-            }
-            return new Date(dateStr);
-        }
-
-        function getFragranceStats(brand, name) {
-            const key = `\( {brand}| \){name}`.toLowerCase().trim();
-            const matches = fragranceData.filter(row => 
-                `\( {row.Brand || ''}| \){row.Name || ''}`.toLowerCase().trim() === key
-            );
-            if (matches.length === 0) return null;
-
-            const sorted = [...matches].sort((a, b) => parseDate(b.Date) - parseDate(a.Date));
-            const now = new Date();
-            const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-            const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-
-            let countMonth = 0, countYear = 0;
-            sorted.forEach(row => {
-                const d = parseDate(row.Date);
-                if (!d) return;
-                if (d >= monthAgo) countMonth++;
-                if (d >= yearAgo) countYear++;
-            });
-
-            return {
-                lastWorn: sorted[0].Date,
-                totalWears: matches.length,
-                countMonth,
-                countYear,
-                firstTime: matches.length === 1
-            };
-        }
-
-        function updateStatsCard(brand, name, rowDate) {
-            const stats = getFragranceStats(brand, name);
-            if (!stats) return;
-
-            document.getElementById('stats-title').textContent = `${brand} - ${name}`;
-
-            let html = '';
-            if (stats.firstTime) {
-                html += `<div style="color:#4ade80;font-weight:bold;"> First time worn!</div>`;
-            } else {
-                html += `
-                    <div><strong>Last Worn:</strong> ${stats.lastWorn}</div>
-                    <div><strong>Total Wears:</strong> ${stats.totalWears}</div>
-                    <div><strong>Last 30 Days:</strong> ${stats.countMonth} times</div>
-                    <div><strong>Last 12 Months:</strong> ${stats.countYear} times</div>
-                `;
-            }
-            html += `<div style="margin-top:10px;opacity:0.7;"><small>This wear: ${rowDate}</small></div>`;
-
-            document.getElementById('stats-content').innerHTML = html;
-        }
-
         async function loadNowWearing() {
             try {
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
@@ -283,40 +188,23 @@
                                 return row;
                             });
                         
-                        fragranceData = [...data];
                         data = data.reverse(); // newest first
                         
                         const tbody = document.querySelector('#nowwearing-table tbody');
                         tbody.innerHTML = data.map(row => `
-                            <tr data-brand="\( {row.Brand || ''}" data-name=" \){row.Name || ''}" data-date="${row.Date || ''}">
+                            <tr>
                                 <td class="date">${row.Date || ''}</td>
                                 <td>${row.Brand || ''}</td>
                                 <td><strong>${row.Name || ''}</strong></td>
-                                <td class="rating">${row.Rating || ''}</td>
+                                <td class="rating">${row.Rating || ''}</rd>
                                 <td class="notes">${row.Usage || ''}</td>
                                 <td class="notes">${row.Notes || ''}</td>
                             </tr>
                         `).join('');
-
-                        // Add tap functionality
-                        tbody.querySelectorAll('tr').forEach(tr => {
-                            tr.addEventListener('click', () => {
-                                tr.classList.add('tap-active');
-                                setTimeout(() => tr.classList.remove('tap-active'), 250);
-
-                                const brand = tr.getAttribute('data-brand');
-                                const name = tr.getAttribute('data-name');
-                                const date = tr.getAttribute('data-date');
-
-                                if (brand && name) {
-                                    updateStatsCard(brand, name, date);
-                                }
-                            });
-                        });
                         
                         document.getElementById('footer').innerHTML = `
                             <div><strong>${data.length}</strong> recent wears logged</div>
-                            <div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">Tap any row for stats</div>
+                            <div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">My Fragrance Collection</div>
                         `;
                     }
                 });
