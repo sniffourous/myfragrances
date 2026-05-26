@@ -6,9 +6,31 @@
     <title>Now Wearing - My Fragrance Collection</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #0a0a0a; color: #e0e0e0; }
-        header { background: linear-gradient(135deg, #1a1a1a, #0f0f0f); color: white; padding: 1.8rem; text-align: center; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            background: #0a0a0a; 
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        header {
+            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+            color: white;
+            padding: 1.8rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
         h1 { margin: 0; font-size: 2.2rem; }
+
+        .nav { position: absolute; top: 20px; left: 20px; }
+        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 8px; }
+        .hamburger span { width: 28px; height: 3px; background: #60a5fa; margin: 4px 0; }
+
+        .menu { display: none; position: absolute; top: 65px; left: 20px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px 0; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1000; }
+        .menu a { display: block; padding: 12px 20px; color: #e0e0e0; text-decoration: none; }
+        .menu a:hover { background: #0066cc; color: white; }
+        .menu.active { display: block; }
 
         #stats-card {
             margin: 16px;
@@ -18,25 +40,43 @@
             border: 2px solid #60a5fa;
             text-align: center;
         }
+        #stats-title { margin: 0 0 8px 0; color: #60a5fa; font-size: 1.2rem; }
+        #stats-content { font-size: 1.15rem; font-weight: bold; min-height: 70px; }
 
         .table-wrapper { padding: 20px; overflow-x: auto; }
         table { min-width: 1000px; border-collapse: collapse; background: #111; width: 100%; }
         th, td { padding: 12px 10px; border-bottom: 1px solid #333; cursor: pointer; }
-        th { background: #1a1a1a; color: #fff; position: sticky; top: 0; }
+        th { background: #1a1a1a; color: #fff; position: sticky; top: 0; z-index: 10; }
         tr:hover { background: #1f2a3a; }
         tr.tap-active { background: #3a4a6a !important; }
 
-        footer { text-align: center; padding: 30px; color: #888; background: #111; }
+        .date { text-align: center; font-weight: bold; white-space: nowrap; }
+        .rating { text-align: center; color: #ffd700; font-weight: bold; }
+        .notes { max-width: 500px; white-space: normal; }
+
+        footer { text-align: center; padding: 30px 20px; color: #888; background: #111; border-top: 1px solid #333; }
     </style>
 </head>
 <body>
     <header>
         <h1>Now Wearing</h1>
+        <div class="nav">
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span><span></span><span></span>
+            </div>
+            <div class="menu" id="menu">
+                <a href="index.html">Home</a>
+                <a href="layers.html">Layers</a>
+                <a href="nowwearing.html">Now Wearing</a>
+                <a href="top.html">Top Fragrances</a>
+                <a href="randomizer.html">Randomizer</a>
+            </div>
+        </div>
     </header>
 
     <div id="stats-card">
-        <h3 id="stats-title">v3.7 - Tap Test</h3>
-        <div id="stats-content" style="font-size:1.2rem; font-weight:bold;"></div>
+        <h3 id="stats-title">v3.8 - Tap a row below</h3>
+        <div id="stats-content"></div>
     </div>
 
     <div class="table-wrapper">
@@ -46,6 +86,9 @@
                     <th>Date</th>
                     <th>Brand</th>
                     <th>Name</th>
+                    <th>Rating</th>
+                    <th>Usage</th>
+                    <th>Notes</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -58,9 +101,32 @@
     <script>
         async function loadNowWearing() {
             try {
-                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
-                const res = await fetch(url + '?t=' + Date.now());
-                const text = await res.text();
+                let text = null;
+                let source = "";
+
+                // Prioritize test folder
+                try {
+                    const res = await fetch('test/NowWearing.csv');
+                    if (res.ok) {
+                        text = await res.text();
+                        source = "test/NowWearing.csv";
+                    }
+                } catch (e) {}
+
+                if (!text) {
+                    try {
+                        const res = await fetch('NowWearing.csv');
+                        if (res.ok) {
+                            text = await res.text();
+                            source = "NowWearing.csv";
+                        }
+                    } catch (e) {}
+                }
+
+                if (!text) {
+                    document.getElementById('footer').innerHTML = `<strong style="color:#ffaa66;">Place NowWearing.csv in the 'test' folder or root folder</strong>`;
+                    return;
+                }
 
                 Papa.parse(text, {
                     header: true,
@@ -79,16 +145,19 @@
                         const tbody = document.querySelector('#nowwearing-table tbody');
                         tbody.innerHTML = data.map(row => `
                             <tr data-brand="\( {row.Brand || ''}" data-name=" \){row.Name || ''}">
-                                <td>${row.Date || ''}</td>
+                                <td class="date">${row.Date || ''}</td>
                                 <td>${row.Brand || ''}</td>
                                 <td><strong>${row.Name || ''}</strong></td>
+                                <td class="rating">${row.Rating || ''}</td>
+                                <td class="notes">${row.Usage || ''}</td>
+                                <td class="notes">${row.Notes || ''}</td>
                             </tr>
                         `).join('');
 
                         tbody.querySelectorAll('tr').forEach(tr => {
                             tr.addEventListener('click', () => {
                                 tr.classList.add('tap-active');
-                                setTimeout(() => tr.classList.remove('tap-active'), 300);
+                                setTimeout(() => tr.classList.remove('tap-active'), 250);
 
                                 const brand = tr.getAttribute('data-brand') || '';
                                 const name = tr.getAttribute('data-name') || '';
@@ -96,11 +165,11 @@
                             });
                         });
 
-                        document.getElementById('footer').innerHTML = `<strong>${data.length}</strong> recent wears logged`;
+                        document.getElementById('footer').innerHTML = `<strong>\( {data.length}</strong> recent wears logged ( \){source})`;
                     }
                 });
             } catch (e) {
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading data</strong>`;
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Could not load CSV</strong>`;
             }
         }
 
