@@ -75,7 +75,7 @@
     </header>
 
     <div id="stats-card">
-        <h3 id="stats-title">v3.4 - Tap a row below</h3>
+        <h3 id="stats-title">v3.5 - Tap a row below</h3>
         <div id="stats-content"></div>
     </div>
 
@@ -100,37 +100,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script>
         async function loadNowWearing() {
-            const footer = document.getElementById('footer');
             try {
-                let text = null;
-                let source = "";
-
-                // Try multiple possible locations for NowWearing.csv
-                const paths = [
-                    'NowWearing.csv',
-                    'test/NowWearing.csv',
-                    '../NowWearing.csv',
-                    'attachments/NowWearing.csv'
-                ];
-
-                for (let path of paths) {
-                    try {
-                        const res = await fetch(path);
-                        if (res.ok) {
-                            text = await res.text();
-                            source = path;
-                            break;
-                        }
-                    } catch (e) {}
-                }
-
-                // Fallback to Google if local not found
-                if (!text) {
-                    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
-                    const res = await fetch(url + '?t=' + Date.now());
-                    text = await res.text();
-                    source = "Google Sheet";
-                }
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
+                
+                const res = await fetch(url + '?t=' + Date.now());
+                const text = await res.text();
 
                 Papa.parse(text, {
                     header: true,
@@ -163,17 +137,17 @@
                                 tr.classList.add('tap-active');
                                 setTimeout(() => tr.classList.remove('tap-active'), 250);
 
-                                const brand = tr.getAttribute('data-brand') || '';
-                                const name = tr.getAttribute('data-name') || '';
+                                const brand = tr.getAttribute('data-brand') || 'Unknown';
+                                const name = tr.getAttribute('data-name') || 'Unknown';
                                 document.getElementById('stats-content').innerHTML = `<strong>${brand} - ${name}</strong>`;
                             });
                         });
-
-                        document.getElementById('footer').innerHTML = `<strong>\( {data.length}</strong> recent wears logged ( \){source})`;
+                        
+                        document.getElementById('footer').innerHTML = `<strong>${data.length}</strong> recent wears logged`;
                     }
                 });
             } catch (e) {
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Could not load CSV</strong>`;
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading CSV</strong>`;
             }
         }
 
