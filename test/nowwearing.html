@@ -61,7 +61,7 @@
             color: #e0e0e0;
             text-decoration: none;
         }
-        .menu a:hover {
+        .menu a:hover, .menu a:active {
             background: #0066cc;
             color: white;
         }
@@ -78,9 +78,8 @@
             width: 100%;
         }
         th, td { 
-            padding: 12px 10px; 
+            padding: 14px 10px; 
             border-bottom: 1px solid #333;
-            cursor: pointer;
         }
         th { 
             background: #1a1a1a; 
@@ -89,7 +88,16 @@
             top: 0; 
             z-index: 10;
         }
-        tr:hover { background: #1f2a3a; }
+        
+        tr {
+            transition: background 0.2s;
+        }
+        tr:hover, tr:active {
+            background: #1f2a3a;
+        }
+        tr.tap-active {
+            background: #2a3a55;
+        }
 
         .date { 
             text-align: center; 
@@ -108,33 +116,29 @@
 
         footer {
             text-align: center;
-            padding: 20px;
+            padding: 18px 12px;
             color: #e0e0e0;
             background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
-            border-top: 2px solid #60a5fa;
+            border-top: 3px solid #60a5fa;
             position: sticky;
             bottom: 0;
             z-index: 1000;
-            min-height: 80px;
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.6);
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.7);
+            min-height: 85px;
         }
         #footer-content {
-            margin-bottom: 8px;
+            font-size: 0.97rem;
         }
         .stat {
-            display: flex;
-            justify-content: space-between;
-            max-width: 420px;
-            margin: 4px auto;
-            font-size: 0.95rem;
+            margin: 5px 0;
         }
 
         /* Mobile improvements */
         @media (max-width: 768px) {
             table { min-width: 800px; }
-            th, td { padding: 10px 8px; font-size: 0.95rem; }
+            th, td { padding: 14px 8px; font-size: 0.96rem; }
             .notes { max-width: 280px; }
-            footer { padding: 16px 12px; }
+            footer { padding: 16px 10px; }
         }
     </style>
 </head>
@@ -238,7 +242,7 @@
             let html = `<strong>${brand} - ${name}</strong><br>`;
 
             if (stats.firstTime) {
-                html += `<span style="color:#4ade80;">First time worn!</span>`;
+                html += `<span style="color:#4ade80;">🎉 First time worn!</span>`;
             } else {
                 html += `
                     Last worn: ${stats.lastWorn}<br>
@@ -248,14 +252,14 @@
                 `;
             }
 
-            html += `<br><small style="opacity:0.7;">This wear: ${rowDate}</small>`;
+            html += `<br><small style="opacity:0.75;">This wear: ${rowDate}</small>`;
             footerContent.innerHTML = html;
         }
 
         function resetFooter() {
             document.getElementById('footer-content').innerHTML = `
                 <strong>${fragranceData.length}</strong> recent wears logged<br>
-                <small style="opacity:0.7;">Tap any row for fragrance stats</small>
+                <small style="opacity:0.75;">Tap any row for fragrance history</small>
             `;
         }
 
@@ -296,15 +300,24 @@
                             </tr>
                         `).join('');
 
-                        // Click handlers
+                        // Add tap/click handlers
                         tbody.querySelectorAll('tr').forEach(tr => {
-                            tr.addEventListener('click', function() {
-                                const brand = this.getAttribute('data-brand');
-                                const name = this.getAttribute('data-name');
-                                const date = this.getAttribute('data-date');
+                            const handleTap = () => {
+                                tr.classList.add('tap-active');
+                                setTimeout(() => tr.classList.remove('tap-active'), 200);
+                                
+                                const brand = tr.getAttribute('data-brand');
+                                const name = tr.getAttribute('data-name');
+                                const date = tr.getAttribute('data-date');
                                 if (brand && name) {
                                     showFragranceStats(brand, name, date);
                                 }
+                            };
+
+                            tr.addEventListener('click', handleTap);
+                            tr.addEventListener('touchend', (e) => {
+                                e.preventDefault();
+                                handleTap();
                             });
                         });
                         
