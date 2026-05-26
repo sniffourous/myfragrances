@@ -23,38 +23,136 @@
         }
         h1 { margin: 0; font-size: 2.2rem; }
 
-        .nav { position: absolute; top: 20px; left: 20px; }
-        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 8px; }
-        .hamburger span { width: 28px; height: 3px; background: #60a5fa; margin: 4px 0; }
-
-        .menu { display: none; position: absolute; top: 65px; left: 20px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px 0; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1000; }
-        .menu a { display: block; padding: 12px 20px; color: #e0e0e0; text-decoration: none; }
-        .menu a:hover { background: #0066cc; color: white; }
+        /* Hamburger Menu */
+        .nav {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .hamburger span {
+            width: 28px;
+            height: 3px;
+            background: #60a5fa;
+            margin: 4px 0;
+            transition: 0.3s;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 65px;
+            left: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 0;
+            min-width: 180px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #e0e0e0;
+            text-decoration: none;
+        }
+        .menu a:hover {
+            background: #0066cc;
+            color: white;
+        }
         .menu.active { display: block; }
 
-        #stats-card {
-            margin: 16px;
-            padding: 20px;
-            background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
-            border-radius: 12px;
+        /* Selected Card */
+        #selected-card {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #1f2a3a;
             border: 2px solid #60a5fa;
+            border-radius: 16px;
+            padding: 25px;
             text-align: center;
+            min-height: 180px;
+            display: none;
         }
-        #stats-title { margin: 0 0 8px 0; color: #60a5fa; font-size: 1.2rem; }
-        #stats-content { font-size: 1.15rem; font-weight: bold; min-height: 70px; }
+        .selected-title {
+            font-size: 1.4rem;
+            color: #60a5fa;
+            margin-bottom: 12px;
+        }
+        .selected-house {
+            font-size: 1.35rem;
+            color: #aaa;
+        }
+        .selected-name {
+            font-size: 2.1rem;
+            color: #60a5fa;
+            margin: 8px 0 16px;
+        }
 
-        .table-wrapper { padding: 20px; overflow-x: auto; }
-        table { min-width: 1000px; border-collapse: collapse; background: #111; width: 100%; }
-        th, td { padding: 12px 10px; border-bottom: 1px solid #333; cursor: pointer; }
-        th { background: #1a1a1a; color: #fff; position: sticky; top: 0; z-index: 10; }
+        .table-wrapper { 
+            padding: 20px; 
+            overflow-x: auto; 
+        }
+        table { 
+            min-width: 1000px; 
+            border-collapse: collapse; 
+            background: #111; 
+            width: 100%;
+        }
+        th, td { 
+            padding: 12px 10px; 
+            border-bottom: 1px solid #333;
+        }
+        th { 
+            background: #1a1a1a; 
+            color: #fff; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
+        }
+        tr {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
         tr:hover { background: #1f2a3a; }
-        tr.tap-active { background: #3a4a6a !important; }
+        tr.selected {
+            background: #2a3a4f;
+            border: 2px solid #60a5fa;
+        }
 
-        .date { text-align: center; font-weight: bold; white-space: nowrap; }
-        .rating { text-align: center; color: #ffd700; font-weight: bold; }
-        .notes { max-width: 500px; white-space: normal; }
+        .date { 
+            text-align: center; 
+            font-weight: bold; 
+            white-space: nowrap;
+        }
+        .rating { 
+            text-align: center; 
+            color: #ffd700; 
+            font-weight: bold; 
+        }
+        .notes { 
+            max-width: 500px; 
+            white-space: normal;
+        }
 
-        footer { text-align: center; padding: 30px 20px; color: #888; background: #111; border-top: 1px solid #333; }
+        @media (max-width: 768px) {
+            table { min-width: 800px; }
+            th, td { padding: 10px 8px; font-size: 0.95rem; }
+            .notes { max-width: 280px; }
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #888;
+            background: #111;
+            border-top: 1px solid #333;
+        }
     </style>
 </head>
 <body>
@@ -62,7 +160,9 @@
         <h1>Now Wearing</h1>
         <div class="nav">
             <div class="hamburger" onclick="toggleMenu()">
-                <span></span><span></span><span></span>
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
             <div class="menu" id="menu">
                 <a href="index.html">Home</a>
@@ -74,9 +174,12 @@
         </div>
     </header>
 
-    <div id="stats-card">
-        <h3 id="stats-title">v3.8 - Tap a row below</h3>
-        <div id="stats-content"></div>
+    <!-- Selected Fragrance Card -->
+    <div id="selected-card">
+        <div class="selected-title">Currently Selected</div>
+        <div class="selected-house" id="selected-house"></div>
+        <div class="selected-name" id="selected-name"></div>
+        <div id="selected-info" style="margin-top: 15px; font-size: 1.05rem; color: #ccc;"></div>
     </div>
 
     <div class="table-wrapper">
@@ -95,87 +198,108 @@
         </table>
     </div>
 
-    <footer id="footer">Loading...</footer>
+    <footer id="footer">
+        Loading recent wears...
+    </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script>
+        let currentData = [];
+
         async function loadNowWearing() {
             try {
-                let text = null;
-                let source = "";
-
-                // Prioritize test folder
-                try {
-                    const res = await fetch('test/NowWearing.csv');
-                    if (res.ok) {
-                        text = await res.text();
-                        source = "test/NowWearing.csv";
-                    }
-                } catch (e) {}
-
-                if (!text) {
-                    try {
-                        const res = await fetch('NowWearing.csv');
-                        if (res.ok) {
-                            text = await res.text();
-                            source = "NowWearing.csv";
-                        }
-                    } catch (e) {}
-                }
-
-                if (!text) {
-                    document.getElementById('footer').innerHTML = `<strong style="color:#ffaa66;">Place NowWearing.csv in the 'test' folder or root folder</strong>`;
-                    return;
-                }
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
+                
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                
+                if (!res.ok) throw new Error("HTTP error: " + res.status);
+                
+                const text = await res.text();
+                if (!text || text.trim() === '') throw new Error("Empty response");
 
                 Papa.parse(text, {
                     header: true,
                     skipEmptyLines: true,
                     complete: (result) => {
-                        let data = result.data.filter(row => row.Date && row.Name)
+                        currentData = result.data
+                            .filter(row => row.Date && row.Name)
                             .map(row => {
                                 Object.keys(row).forEach(key => {
                                     if (typeof row[key] === 'string') row[key] = row[key].trim();
                                 });
                                 return row;
-                            });
+                            })
+                            .reverse(); // newest first
                         
-                        data = data.reverse();
-
-                        const tbody = document.querySelector('#nowwearing-table tbody');
-                        tbody.innerHTML = data.map(row => `
-                            <tr data-brand="\( {row.Brand || ''}" data-name=" \){row.Name || ''}">
-                                <td class="date">${row.Date || ''}</td>
-                                <td>${row.Brand || ''}</td>
-                                <td><strong>${row.Name || ''}</strong></td>
-                                <td class="rating">${row.Rating || ''}</td>
-                                <td class="notes">${row.Usage || ''}</td>
-                                <td class="notes">${row.Notes || ''}</td>
-                            </tr>
-                        `).join('');
-
-                        tbody.querySelectorAll('tr').forEach(tr => {
-                            tr.addEventListener('click', () => {
-                                tr.classList.add('tap-active');
-                                setTimeout(() => tr.classList.remove('tap-active'), 250);
-
-                                const brand = tr.getAttribute('data-brand') || '';
-                                const name = tr.getAttribute('data-name') || '';
-                                document.getElementById('stats-content').innerHTML = `<strong>${brand} - ${name}</strong>`;
-                            });
-                        });
-
-                        document.getElementById('footer').innerHTML = `<strong>\( {data.length}</strong> recent wears logged ( \){source})`;
+                        renderTable();
+                        
+                        document.getElementById('footer').innerHTML = `
+                            <div><strong>${currentData.length}</strong> recent wears logged</div>
+                            <div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">My Fragrance Collection</div>
+                        `;
                     }
                 });
             } catch (e) {
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Could not load CSV</strong>`;
+                console.error("Load error:", e);
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading Google Sheet</strong>`;
             }
+        }
+
+        function renderTable() {
+            const tbody = document.querySelector('#nowwearing-table tbody');
+            tbody.innerHTML = currentData.map((row, index) => `
+                <tr data-index="${index}">
+                    <td class="date">${row.Date || ''}</td>
+                    <td>${row.Brand || ''}</td>
+                    <td><strong>${row.Name || ''}</strong></td>
+                    <td class="rating">${row.Rating || ''}</td>
+                    <td class="notes">${row.Usage || ''}</td>
+                    <td class="notes">${row.Notes || ''}</td>
+                </tr>
+            `).join('');
+
+            // Add click listeners
+            document.querySelectorAll('#nowwearing-table tbody tr').forEach(row => {
+                row.addEventListener('click', () => {
+                    selectRow(row);
+                });
+            });
+        }
+
+        function selectRow(rowElement) {
+            // Remove previous selection
+            document.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+            
+            // Highlight current row
+            rowElement.classList.add('selected');
+
+            const index = parseInt(rowElement.dataset.index);
+            const row = currentData[index];
+
+            if (!row) return;
+
+            // Populate the card
+            document.getElementById('selected-house').textContent = row.Brand || '';
+            document.getElementById('selected-name').textContent = row.Name || '';
+            
+            const infoHTML = `
+                <strong>Rating:</strong> ${row.Rating || '?'} &nbsp;&nbsp;|&nbsp;&nbsp;
+                <strong>Usage:</strong> ${row.Usage || '?'}<br>
+                ${row.Notes ? `<strong>Notes:</strong> ${row.Notes}` : ''}
+            `;
+            document.getElementById('selected-info').innerHTML = infoHTML;
+            
+            document.getElementById('selected-card').style.display = 'block';
         }
 
         function toggleMenu() {
             document.getElementById('menu').classList.toggle('active');
         }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav')) {
+                document.getElementById('menu').classList.remove('active');
+            }
+        });
 
         window.onload = loadNowWearing;
     </script>
