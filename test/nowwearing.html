@@ -32,7 +32,6 @@
         .menu a:hover { background: #0066cc; color: white; }
         .menu.active { display: block; }
 
-        /* Stats Card - v3.1 */
         #stats-card {
             margin: 16px;
             padding: 20px;
@@ -75,9 +74,8 @@
         </div>
     </header>
 
-    <!-- Stats Card v3.1 -->
     <div id="stats-card">
-        <h3 id="stats-title">v3.1 - Tap a row below</h3>
+        <h3 id="stats-title">v3.2 - Tap a row below</h3>
         <div id="stats-content"></div>
     </div>
 
@@ -134,7 +132,6 @@
                             </tr>
                         `).join('');
 
-                        // Tap handler
                         tbody.querySelectorAll('tr').forEach(tr => {
                             tr.addEventListener('click', () => {
                                 tr.classList.add('tap-active');
@@ -150,7 +147,7 @@
                     }
                 });
             } catch (e) {
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading CSV</strong>`;
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading CSV - Try Refresh</strong>`;
             }
         }
 
