@@ -75,7 +75,7 @@
     </header>
 
     <div id="stats-card">
-        <h3 id="stats-title">v3.3 - Tap a row below</h3>
+        <h3 id="stats-title">v3.4 - Tap a row below</h3>
         <div id="stats-content"></div>
     </div>
 
@@ -100,27 +100,36 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script>
         async function loadNowWearing() {
+            const footer = document.getElementById('footer');
             try {
                 let text = null;
+                let source = "";
 
-                // Try local CSV in test folder
-                try {
-                    const res = await fetch('test/NowWearing.csv');
-                    text = await res.text();
-                    console.log("Loaded from test/NowWearing.csv");
-                } catch (e) {
-                    // Try root
+                // Try multiple possible locations for NowWearing.csv
+                const paths = [
+                    'NowWearing.csv',
+                    'test/NowWearing.csv',
+                    '../NowWearing.csv',
+                    'attachments/NowWearing.csv'
+                ];
+
+                for (let path of paths) {
                     try {
-                        const res = await fetch('NowWearing.csv');
-                        text = await res.text();
-                        console.log("Loaded from root NowWearing.csv");
-                    } catch (e2) {
-                        // Fallback to Google
-                        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
-                        const res = await fetch(url + '?t=' + Date.now());
-                        text = await res.text();
-                        console.log("Loaded from Google");
-                    }
+                        const res = await fetch(path);
+                        if (res.ok) {
+                            text = await res.text();
+                            source = path;
+                            break;
+                        }
+                    } catch (e) {}
+                }
+
+                // Fallback to Google if local not found
+                if (!text) {
+                    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
+                    const res = await fetch(url + '?t=' + Date.now());
+                    text = await res.text();
+                    source = "Google Sheet";
                 }
 
                 Papa.parse(text, {
@@ -160,11 +169,11 @@
                             });
                         });
 
-                        document.getElementById('footer').innerHTML = `<strong>${data.length}</strong> recent wears logged`;
+                        document.getElementById('footer').innerHTML = `<strong>\( {data.length}</strong> recent wears logged ( \){source})`;
                     }
                 });
             } catch (e) {
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Could not load data</strong>`;
+                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Could not load CSV</strong>`;
             }
         }
 
