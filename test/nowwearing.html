@@ -57,9 +57,9 @@
             top: 12px;
             right: 12px;
             font-size: 0.75rem;
-            color: #555;
-            background: rgba(0,0,0,0.4);
-            padding: 2px 6px;
+            color: #666;
+            background: rgba(0,0,0,0.5);
+            padding: 2px 8px;
             border-radius: 4px;
         }
 
@@ -75,7 +75,8 @@
         .rating { text-align: center; color: #ffd700; font-weight: bold; }
         .notes { max-width: 500px; white-space: normal; }
 
-        footer { text-align: center; padding: 20px; color: #888; background: #111; border-top: 1px solid #333; }
+        footer { text-align: center; padding: 20px; color: #ccc; background: #111; border-top: 1px solid #333; }
+        .error { color: #ff6666; }
     </style>
 </head>
 <body>
@@ -96,7 +97,7 @@
     </header>
 
     <div id="stats-card">
-        <div class="version">v1.3 • Tap Test</div>
+        <div class="version">v1.4 • Fixed CSV</div>
         <h3 id="stats-title">Tap any row below 👇</h3>
         <div id="stats-content" style="text-align:center; opacity:0.8;">
             Stats will appear here
@@ -119,7 +120,7 @@
         </table>
     </div>
 
-    <footer id="footer">Loading...</footer>
+    <footer id="footer">Loading recent wears...</footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script>
@@ -180,15 +181,23 @@
                  <div><strong>Last Year:</strong> ${stats.year} times</div>`;
 
             html += `<div style="margin-top:10px;opacity:0.7;"><small>This wear: ${rowDate}</small></div>`;
-            
             document.getElementById('stats-content').innerHTML = html;
         }
 
         async function loadNowWearing() {
+            const footer = document.getElementById('footer');
             try {
+                // Updated CSV URL (more reliable)
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
-                const res = await fetch(url + '?t=' + Date.now());
+                
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now(), {
+                    cache: 'no-store'
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
                 const text = await res.text();
+                if (!text || text.trim() === '') throw new Error("Empty data");
 
                 Papa.parse(text, {
                     header: true,
@@ -201,6 +210,8 @@
                                 });
                                 return row;
                             });
+
+                        if (data.length === 0) throw new Error("No valid rows found");
 
                         fragranceData = data;
                         data = data.reverse();
@@ -217,7 +228,6 @@
                             </tr>
                         `).join('');
 
-                        // Event listeners
                         tbody.querySelectorAll('tr').forEach(tr => {
                             const handler = () => {
                                 tr.classList.add('tap-active');
@@ -227,23 +237,19 @@
                                 const name = tr.dataset.name;
                                 const date = tr.dataset.date;
 
-                                if (brand && name) {
-                                    updateStatsCard(brand, name, date);
-                                }
+                                if (brand && name) updateStatsCard(brand, name, date);
                             };
 
                             tr.addEventListener('click', handler);
-                            tr.addEventListener('touchend', (e) => {
-                                e.preventDefault();
-                                handler();
-                            });
+                            tr.addEventListener('touchend', e => { e.preventDefault(); handler(); });
                         });
 
-                        document.getElementById('footer').innerHTML = `<strong>${data.length}</strong> recent wears logged`;
+                        footer.innerHTML = `<strong>${data.length}</strong> recent wears logged`;
                     }
                 });
-            } catch(e) {
-                document.getElementById('footer').innerHTML = "Error loading data";
+            } catch (e) {
+                console.error(e);
+                footer.innerHTML = `<span class="error">⚠️ Error loading data. Please check Google Sheet sharing settings.</span>`;
             }
         }
 
