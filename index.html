@@ -137,7 +137,7 @@
         td:nth-child(2), th:nth-child(2),
         td:nth-child(7), th:nth-child(7),
         td:nth-child(9), th:nth-child(9),
-        td:nth-child(11), th:nth-child(11) {
+        td:nth-child(12), th:nth-child(12) {
             text-align: left;
         }
 
@@ -146,7 +146,8 @@
         td:nth-child(5), th:nth-child(5),
         td:nth-child(6), th:nth-child(6),
         td:nth-child(8), th:nth-child(8),
-        td:nth-child(10), th:nth-child(10) {
+        td:nth-child(10), th:nth-child(10),
+        td:nth-child(11), th:nth-child(11) {
             text-align: center;
         }
 
@@ -242,7 +243,8 @@
         <button onclick="sortTable(2)">Rating</button>
         <button onclick="sortTable(3)">Hours</button>
         <button onclick="sortTable(4)">Silliage</button>
-        <button onclick="sortTable(7)">Parfumo</button>
+        <button onclick="sortTable(8)">Parfumo</button>
+        <button onclick="sortTable(7)">Perfumer</button>
 
         <button onclick="startOver()" class="startover-btn">Start Over</button>
         <button onclick="exportToCSV()" class="export-btn">Export To CSV</button>
@@ -259,9 +261,10 @@
                     <th onclick="sortTable(4)">Silliage</th>
                     <th onclick="sortTable(5)">Sprays</th>
                     <th onclick="sortTable(6)">Genre</th>
-                    <th onclick="sortTable(7)">Parfumo</th>
-                    <th onclick="sortTable(8)">Season</th>
-                    <th onclick="sortTable(9)">ml</th>
+                    <th onclick="sortTable(7)">Perfumer</th>
+                    <th onclick="sortTable(8)">Parfumo</th>
+                    <th onclick="sortTable(9)">Season</th>
+                    <th onclick="sortTable(10)">ml</th>
                     <th>Notes / Comments</th>
                 </tr>
             </thead>
@@ -278,7 +281,7 @@
         let currentGenres = new Set();
         let sortState = {};
 
-        const highFirst = [2, 3, 4, 7];
+        const highFirst = [2, 3, 4, 8];
 
         async function loadCSV() {
             try {
@@ -348,6 +351,7 @@
                     '<td>' + (f.Silliage || '') + '</td>' +
                     '<td>' + (f.Sprays || '') + '</td>' +
                     '<td>' + (f.Genre || '') + '</td>' +
+                    '<td>' + (f.Perfumer || '') + '</td>' +
                     '<td>' + (f['Parfumo Rating'] || '') + '</td>' +
                     '<td>' + (f.Seasons || '') + '</td>' +
                     '<td>' + (f.Size || '') + '</td>' +
@@ -416,7 +420,7 @@
             const rows = Array.from(tbody.querySelectorAll('tr'));
             if (rows.length === 0) return alert("No data to export!");
 
-            let csv = "House,Name,Rating,Hours,Silliage,Sprays,Genre,Parfumo,Season,ml,Notes/Comments\n";
+            let csv = "House,Name,Rating,Hours,Silliage,Sprays,Genre,Perfumer,Parfumo,Season,ml,Notes/Comments\n";
             rows.forEach(row => {
                 const cells = Array.from(row.cells).map(cell => `"${cell.textContent.trim().replace(/"/g, '""')}"`);
                 csv += cells.join(',') + '\n';
