@@ -32,56 +32,33 @@
         .menu a:hover, .menu a:active { background: #0066cc; color: white; }
         .menu.active { display: block; }
 
-        /* Stats Card */
         #stats-card {
             margin: 16px;
             padding: 20px;
             background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
             border-radius: 12px;
             border: 2px solid #60a5fa;
-            min-height: 170px;
+            min-height: 180px;
             position: relative;
         }
-        #stats-title {
-            margin: 0 0 12px 0;
-            color: #60a5fa;
-            text-align: center;
-            font-size: 1.1rem;
-        }
-        #stats-content {
-            line-height: 1.6;
-            font-size: 0.98rem;
-        }
-        .version {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 0.75rem;
-            color: #666;
-            background: rgba(0,0,0,0.5);
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
+        #stats-title { margin: 0 0 12px 0; color: #60a5fa; text-align: center; font-size: 1.1rem; }
+        #stats-content { line-height: 1.6; font-size: 0.98rem; }
+        .version { position: absolute; top: 12px; right: 12px; font-size: 0.75rem; color: #666; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px; }
 
         .table-wrapper { padding: 0 16px 20px; overflow-x: auto; }
         table { min-width: 1000px; border-collapse: collapse; background: #111; width: 100%; }
-        th, td { padding: 20px 10px; border-bottom: 1px solid #333; } /* Bigger tap area */
+        th, td { padding: 22px 10px; border-bottom: 1px solid #333; }
         th { background: #1a1a1a; color: #fff; position: sticky; top: 0; z-index: 10; }
 
-        tr { 
-            transition: background 0.2s; 
-            cursor: pointer;
-        }
-        tr.tap-active { 
-            background: #3a4a6a !important; 
-            transform: scale(1.02);
-        }
+        tr { transition: all 0.25s; cursor: pointer; }
+        tr.tap-active { background: #3a4a6a !important; transform: scale(1.015); }
 
         .date { text-align: center; font-weight: bold; white-space: nowrap; }
         .rating { text-align: center; color: #ffd700; font-weight: bold; }
         .notes { max-width: 500px; white-space: normal; }
 
         footer { text-align: center; padding: 20px; color: #ccc; background: #111; border-top: 1px solid #333; }
+        .error { color: #ff6666; }
     </style>
 </head>
 <body>
@@ -102,10 +79,10 @@
     </header>
 
     <div id="stats-card">
-        <div class="version">v1.5 • Tap Debug</div>
-        <h3 id="stats-title">Tap any row below 👇</h3>
+        <div class="version">v1.6 • Debug Mode</div>
+        <h3 id="stats-title">Tap any data row below</h3>
         <div id="stats-content" style="text-align:center; opacity:0.8;">
-            Watch this area when you tap
+            Header taps do nothing (normal)
         </div>
     </div>
 
@@ -144,13 +121,10 @@
 
         function getFragranceStats(brand, name) {
             const key = (brand + "|" + name).toLowerCase().trim();
-            const matches = fragranceData.filter(r => 
-                ((r.Brand || "") + "|" + (r.Name || "")).toLowerCase().trim() === key
-            );
+            const matches = fragranceData.filter(r => ((r.Brand || "") + "|" + (r.Name || "")).toLowerCase().trim() === key);
             if (matches.length === 0) return null;
 
             const sorted = [...matches].sort((a,b) => parseDate(b.Date) - parseDate(a.Date));
-
             const now = new Date();
             const monthAgo = new Date(now.getFullYear(), now.getMonth()-1, now.getDate());
             const yearAgo = new Date(now.getFullYear()-1, now.getMonth(), now.getDate());
@@ -162,13 +136,7 @@
                 if (d >= yearAgo) y++;
             });
 
-            return {
-                lastWorn: sorted[0].Date,
-                total: matches.length,
-                month: m,
-                year: y,
-                first: matches.length === 1
-            };
+            return { lastWorn: sorted[0].Date, total: matches.length, month: m, year: y, first: matches.length === 1 };
         }
 
         function updateStatsCard(brand, name, rowDate) {
@@ -176,19 +144,18 @@
             if (!stats) return;
 
             document.getElementById('stats-title').textContent = `${brand} - ${name}`;
-
             let html = stats.first ? 
                 `<div style="color:#4ade80;font-weight:bold;">🎉 First time worn!</div>` : 
                 `<div><strong>Last Worn:</strong> ${stats.lastWorn}</div>
-                 <div><strong>Total Wears:</strong> ${stats.total}</div>
-                 <div><strong>Last 30 Days:</strong> ${stats.month} times</div>
-                 <div><strong>Last Year:</strong> ${stats.year} times</div>`;
-
+                 <div><strong>Total:</strong> ${stats.total}</div>
+                 <div><strong>Last 30d:</strong> ${stats.month}</div>
+                 <div><strong>Last 12m:</strong> ${stats.year}</div>`;
             html += `<div style="margin-top:10px;opacity:0.7;"><small>This wear: ${rowDate}</small></div>`;
             document.getElementById('stats-content').innerHTML = html;
         }
 
         async function loadNowWearing() {
+            const footer = document.getElementById('footer');
             try {
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
                 const res = await fetch(url + '?t=' + Date.now());
@@ -200,9 +167,7 @@
                     complete: (result) => {
                         let data = result.data.filter(row => row.Date && row.Name)
                             .map(row => {
-                                Object.keys(row).forEach(k => {
-                                    if (typeof row[k] === 'string') row[k] = row[k].trim();
-                                });
+                                Object.keys(row).forEach(k => { if (typeof row[k]==='string') row[k]=row[k].trim(); });
                                 return row;
                             });
 
@@ -221,41 +186,31 @@
                             </tr>
                         `).join('');
 
-                        // === TAP HANDLERS ===
                         tbody.querySelectorAll('tr').forEach(tr => {
                             const handler = () => {
-                                // Strong visual feedback
                                 tr.classList.add('tap-active');
-                                setTimeout(() => tr.classList.remove('tap-active'), 400);
+                                setTimeout(() => tr.classList.remove('tap-active'), 500);
 
                                 const brand = tr.dataset.brand;
                                 const name = tr.dataset.name;
                                 const date = tr.dataset.date;
 
                                 if (brand && name) {
-                                    // Immediate feedback
                                     document.getElementById('stats-content').innerHTML = 
-                                        `<strong style="color:#60a5fa;">✓ TAP REGISTERED!</strong><br><small>${brand} - ${name}</small>`;
-                                    
-                                    // Then load real stats
-                                    setTimeout(() => {
-                                        updateStatsCard(brand, name, date);
-                                    }, 600);
+                                        `<strong style="color:#4ade80;">✓ TAP REGISTERED</strong><br>${brand} - ${name}`;
+                                    setTimeout(() => updateStatsCard(brand, name, date), 800);
                                 }
                             };
 
                             tr.addEventListener('click', handler);
-                            tr.addEventListener('touchend', (e) => {
-                                e.preventDefault();
-                                handler();
-                            });
+                            tr.addEventListener('touchend', e => { e.preventDefault(); handler(); });
                         });
 
-                        document.getElementById('footer').innerHTML = `<strong>${data.length}</strong> recent wears logged`;
+                        footer.innerHTML = `<strong>${data.length}</strong> recent wears logged`;
                     }
                 });
-            } catch(e) {
-                document.getElementById('footer').innerHTML = "Error loading data";
+            } catch (e) {
+                footer.innerHTML = `<span class="error">⚠️ Failed to load CSV. Try refreshing.</span>`;
             }
         }
 
