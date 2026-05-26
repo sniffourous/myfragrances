@@ -32,7 +32,7 @@
         .menu a:hover { background: #0066cc; color: white; }
         .menu.active { display: block; }
 
-        /* Stats Card */
+        /* Stats Card - v3.1 */
         #stats-card {
             margin: 16px;
             padding: 20px;
@@ -75,7 +75,7 @@
         </div>
     </header>
 
-    <!-- Stats Card -->
+    <!-- Stats Card v3.1 -->
     <div id="stats-card">
         <h3 id="stats-title">v3.1 - Tap a row below</h3>
         <div id="stats-content"></div>
@@ -140,10 +140,8 @@
                                 tr.classList.add('tap-active');
                                 setTimeout(() => tr.classList.remove('tap-active'), 250);
 
-                                const brand = tr.getAttribute('data-brand') || 'Unknown';
-                                const name = tr.getAttribute('data-name') || 'Unknown';
-                                
-                                document.getElementById('stats-title').textContent = "Selected Fragrance";
+                                const brand = tr.getAttribute('data-brand') || '';
+                                const name = tr.getAttribute('data-name') || '';
                                 document.getElementById('stats-content').innerHTML = `<strong>${brand} - ${name}</strong>`;
                             });
                         });
