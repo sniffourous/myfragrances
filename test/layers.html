@@ -117,13 +117,13 @@
                 <span></span>
                 <span></span>
             </div>
-         <div class="menu" id="menu">
-    <a href="index.html">Home</a>
-    <a href="layers.html">Layers</a>
-    <a href="nowwearing.html">Now Wearing</a>
-    <a href="top.html">Top Fragrances</a>
-     <a href="randomizer.html">Randomizer</a>
-</div>
+            <div class="menu" id="menu">
+                <a href="index.html">Home</a>
+                <a href="layers.html">Layers</a>
+                <a href="nowwearing.html">Now Wearing</a>
+                <a href="top.html">Top Fragrances</a>
+                <a href="randomizer.html">Randomizer</a>
+            </div>
         </div>
     </header>
 
@@ -146,9 +146,14 @@
         Loading layers...
     </footer>
 
-    <script async src="//busuanzi.ibruce.info/busuanzi.pure.mini.js"></script>
-
     <script>
+        function cleanValue(val) {
+            if (val === null || val === undefined || val === '' || val === '?') {
+                return 'N/A';
+            }
+            return val;
+        }
+
         async function loadLayers() {
             try {
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1331568544&single=true&output=csv";
@@ -177,11 +182,11 @@
                         const tbody = document.querySelector('#layers-table tbody');
                         tbody.innerHTML = data.map(row => `
                             <tr>
-                                <td>${row['Fragrance 1'] || ''}</td>
-                                <td>${row['Fragrance 2'] || ''}</td>
-                                <td class="ratio">${row.Ratio || ''}</td>
-                                <td>${row.Rating || ''}</td>
-                                <td>${row.Notes || ''}</td>
+                                <td>${cleanValue(row['Fragrance 1'])}</td>
+                                <td>${cleanValue(row['Fragrance 2'])}</td>
+                                <td class="ratio">${cleanValue(row.Ratio)}</td>
+                                <td>${cleanValue(row.Rating)}</td>
+                                <td>${cleanValue(row.Notes)}</td>
                             </tr>
                         `).join('');
                         
