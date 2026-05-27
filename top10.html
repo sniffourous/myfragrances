@@ -70,18 +70,19 @@
         .table-wrapper { 
             padding: 20px;
             overflow-x: auto; 
-            max-height: 80vh;
+            max-height: 82vh;
             overflow-y: auto;
         }
         table { 
-            min-width: 1100px; 
+            min-width: 1050px; 
             border-collapse: collapse; 
             background: #111; 
             width: 100%;
         }
         th, td { 
-            padding: 12px 10px; 
+            padding: 13px 12px; 
             border-bottom: 1px solid #333;
+            text-align: left;
         }
         th { 
             background: #1a1a1a; 
@@ -105,6 +106,10 @@
             white-space: normal !important; 
         }
 
+        .name-cell {
+            font-weight: 600;
+        }
+
         footer {
             text-align: center;
             padding: 25px;
@@ -114,8 +119,8 @@
         }
 
         @media (max-width: 768px) {
-            table { min-width: 850px; }
-            th, td { padding: 10px 6px; font-size: 0.95rem; }
+            table { min-width: 820px; }
+            th, td { padding: 11px 8px; font-size: 0.95rem; }
             .notes { min-width: 280px; }
         }
     </style>
@@ -167,7 +172,7 @@
             if (val === null || val === undefined || val === '' || val === '?') {
                 return 'N/A';
             }
-            return val;
+            return val.trim();
         }
 
         async function loadCSV() {
@@ -179,7 +184,6 @@
                 if (!res.ok) throw new Error("HTTP error: " + res.status);
                 
                 const text = await res.text();
-                
                 if (!text || text.trim() === '') throw new Error("Empty response from Google");
 
                 Papa.parse(text, {
@@ -209,20 +213,20 @@
         function renderTable(data) {
             const tbody = document.querySelector('#fragrance-table tbody');
             let html = '';
+            
             for (let i = 0; i < data.length; i++) {
                 const f = data[i];
                 
-                // Link handling
-                const link = cleanValue(f.Link || f.URL || f['Link'] || f['URL']);
-                const linkHtml = (link && link !== 'N/A' && link !== '')
+                const link = cleanValue(f.Link || f.URL || f['Link'] || f['URL'] || '');
+                const linkHtml = (link && link !== 'N/A' && link.startsWith('http')) 
                     ? `<a href="${link}" target="_blank" rel="noopener">🔗 Link</a>` 
                     : 'N/A';
                 
                 html += '<tr>' +
                     '<td>' + cleanValue(f.House) + '</td>' +
-                    '<td><strong>' + cleanValue(f.Name) + '</strong></td>' +
+                    '<td class="name-cell">' + cleanValue(f.Name) + '</td>' +
                     '<td>' + cleanValue(f.Rating) + '</td>' +
-                    '<td>' + cleanValue(f.Usage || f['Hours of Performance'] || f.Hours) + '</td>' +
+                    '<td>' + cleanValue(f.Usage || f['Hours of Performance'] || f.Hours || f['Usage']) + '</td>' +
                     '<td class="notes">' + cleanValue(f.Notes) + ' <strong>' + cleanValue(f.Comments) + '</strong></td>' +
                     '<td class="link-cell">' + linkHtml + '</td>' +
                     '</tr>';
