@@ -72,6 +72,7 @@
             overflow-x: auto; 
             max-height: 82vh;
             overflow-y: auto;
+            padding-bottom: 80px;
         }
         table { 
             min-width: 1050px; 
@@ -91,7 +92,15 @@
             top: 0; 
             z-index: 10;
         }
+        tr { 
+            cursor: pointer; 
+            transition: all 0.2s; 
+        }
         tr:hover { background: #1f2a3a; }
+        tr.selected { 
+            background: #2a3a4f; 
+            border: 2px solid #60a5fa; 
+        }
 
         .link-cell a {
             color: #60a5fa;
@@ -110,18 +119,42 @@
             font-weight: 600;
         }
 
-        footer {
-            text-align: center;
-            padding: 25px;
-            color: #888;
-            font-size: 0.95rem;
-            background: #111;
+        /* Modal Card */
+        #detail-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
         }
-
-        @media (max-width: 768px) {
-            table { min-width: 820px; }
-            th, td { padding: 11px 8px; font-size: 0.95rem; }
-            .notes { min-width: 280px; }
+        #modal-content {
+            background: #1a1a1a;
+            border: 1px solid #60a5fa;
+            border-radius: 12px;
+            max-width: 520px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+        .close-btn {
+            font-size: 28px;
+            cursor: pointer;
+            color: #888;
+        }
+        .modal-title {
+            color: #60a5fa;
+            font-size: 1.4rem;
         }
     </style>
 </head>
@@ -161,12 +194,20 @@
         </table>
     </div>
 
-    <footer id="footer">
-        Loading Top 10...
-    </footer>
+    <!-- Detail Modal -->
+    <div id="detail-modal">
+        <div id="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Fragrance Details</div>
+                <span class="close-btn" onclick="closeModal()">×</span>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
 
     <script>
-        let fragrances = [];
+        let top10Data = [];
+        let fullCollection = [];
 
         function cleanValue(val) {
             if (val === null || val === undefined || val === '' || val === '?') {
@@ -175,22 +216,18 @@
             return val.trim();
         }
 
-        async function loadCSV() {
+        async function loadData() {
             try {
-                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=146247773&single=true&output=csv";
-                
-                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
-                
-                if (!res.ok) throw new Error("HTTP error: " + res.status);
-                
-                const text = await res.text();
-                if (!text || text.trim() === '') throw new Error("Empty response from Google");
+                // Load Top 10
+                const topUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=146247773&single=true&output=csv";
+                const topRes = await fetch(topUrl + (topUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
+                const topText = await topRes.text();
 
-                Papa.parse(text, {
+                Papa.parse(topText, {
                     header: true,
                     skipEmptyLines: true,
-                    complete: (result) => {
-                        fragrances = result.data
+                    complete: async (result) => {
+                        top10Data = result.data
                             .filter(row => row.Name && row.Name.trim())
                             .map(row => {
                                 Object.keys(row).forEach(key => {
@@ -198,46 +235,103 @@
                                 });
                                 return row;
                             });
-                        
-                        console.log("✅ Loaded", fragrances.length, "top fragrances");
-                        renderTable(fragrances);
-                        updateFooter();
+
+                        await loadFullCollection();
+                        renderTable();
                     }
                 });
             } catch (e) {
                 console.error("Load error:", e);
-                document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading Google Sheet</strong><br><small>${e.message}</small>`;
             }
         }
 
-        function renderTable(data) {
+        async function loadFullCollection() {
+            try {
+                const mainUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
+                const res = await fetch(mainUrl + (mainUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
+                const text = await res.text();
+
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (result) => {
+                        fullCollection = result.data.map(row => {
+                            Object.keys(row).forEach(key => {
+                                if (typeof row[key] === 'string') row[key] = row[key].trim();
+                            });
+                            return row;
+                        });
+                    }
+                });
+            } catch (e) {
+                console.error("Failed to load full collection:", e);
+            }
+        }
+
+        function renderTable() {
             const tbody = document.querySelector('#fragrance-table tbody');
             let html = '';
             
-            for (let i = 0; i < data.length; i++) {
-                const f = data[i];
+            for (let i = 0; i < top10Data.length; i++) {
+                const f = top10Data[i];
                 
                 const link = cleanValue(f.Link || f.URL || f['Link'] || f['URL'] || '');
                 const linkHtml = (link && link !== 'N/A' && link.startsWith('http')) 
                     ? `<a href="${link}" target="_blank" rel="noopener">🔗 Link</a>` 
                     : 'N/A';
                 
-                html += '<tr>' +
+                html += `<tr data-index="${i}">` +
                     '<td>' + cleanValue(f.House) + '</td>' +
                     '<td class="name-cell">' + cleanValue(f.Name) + '</td>' +
                     '<td>' + cleanValue(f.Rating) + '</td>' +
-                    '<td>' + cleanValue(f.Usage || f['Hours of Performance'] || f.Hours || f['Usage']) + '</td>' +
+                    '<td>' + cleanValue(f.Usage || f['Hours of Performance'] || f.Hours) + '</td>' +
                     '<td class="notes">' + cleanValue(f.Notes) + ' <strong>' + cleanValue(f.Comments) + '</strong></td>' +
                     '<td class="link-cell">' + linkHtml + '</td>' +
                     '</tr>';
             }
             tbody.innerHTML = html;
+
+            document.querySelectorAll('#fragrance-table tbody tr').forEach(row => {
+                row.addEventListener('click', () => showDetails(row));
+            });
         }
 
-        function updateFooter() {
-            document.getElementById('footer').innerHTML = `
-                <strong>${fragrances.length}</strong> top fragrances
+        function showDetails(rowElement) {
+            document.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+            rowElement.classList.add('selected');
+
+            const index = parseInt(rowElement.dataset.index);
+            const topRow = top10Data[index];
+
+            // Try to find full details from main collection
+            const fullRow = fullCollection.find(r => 
+                r.Name && r.Name.toLowerCase() === topRow.Name.toLowerCase()
+            ) || topRow;
+
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <strong>House:</strong> ${cleanValue(fullRow.House)}<br><br>
+                <strong>Name:</strong> ${cleanValue(fullRow.Name)}<br><br>
+                <strong>Rating:</strong> ${cleanValue(fullRow.Rating)}<br><br>
+                <strong>Usage / Longevity:</strong> ${cleanValue(fullRow.Usage || fullRow['Hours of Performance'])}<br><br>
+                <strong>Genre:</strong> ${cleanValue(fullRow.Genre)}<br><br>
+                <strong>Perfumer:</strong> ${cleanValue(fullRow.Perfumer)}<br><br>
+                <strong>Season:</strong> ${cleanValue(fullRow.Seasons)}<br><br>
+                <strong>Notes / Comments:</strong><br>
+                <div style="background:#111; padding:12px; border-radius:6px; margin-top:8px;">
+                    ${cleanValue(fullRow.Notes)}<br>
+                    <strong>${cleanValue(fullRow.Comments)}</strong>
+                </div>
+                \( {fullRow.Link || fullRow.URL ? `<br><strong>Link:</strong> <a href=" \){fullRow.Link || fullRow.URL}" target="_blank">Open Link →</a>` : ''}
             `;
+
+            document.getElementById('modal-title').textContent = `${cleanValue(fullRow.House)} — ${cleanValue(fullRow.Name)}`;
+            document.getElementById('detail-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').style.display = 'none';
+            document.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
         }
 
         function toggleMenu() {
@@ -250,7 +344,12 @@
             }
         });
 
-        window.onload = loadCSV;
+        // Close modal when clicking outside content
+        document.getElementById('detail-modal').addEventListener('click', function(e) {
+            if (e.target.id === 'detail-modal') closeModal();
+        });
+
+        window.onload = loadData;
     </script>
 </body>
 </html>
