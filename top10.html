@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layers - My Fragrance Collection</title>
+    <title>Top 10 Fragrances</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         body { 
@@ -13,6 +13,7 @@
             color: #e0e0e0;
             line-height: 1.5;
         }
+        
         header {
             background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
             color: white;
@@ -23,7 +24,6 @@
         }
         h1 { margin: 0; font-size: 2.2rem; }
 
-        /* Hamburger Menu */
         .nav {
             position: absolute;
             top: 20px;
@@ -68,49 +68,61 @@
         .menu.active { display: block; }
 
         .table-wrapper { 
-            padding: 20px; 
+            padding: 20px;
             overflow-x: auto; 
+            max-height: 80vh;
+            overflow-y: auto;
         }
         table { 
-            min-width: 800px; 
+            min-width: 1250px; 
             border-collapse: collapse; 
             background: #111; 
             width: 100%;
         }
         th, td { 
-            padding: 14px 12px; 
+            padding: 12px 10px; 
             border-bottom: 1px solid #333;
         }
         th { 
             background: #1a1a1a; 
             color: #fff; 
-            text-align: left;
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
         }
         tr:hover { background: #1f2a3a; }
 
-        .ratio { 
-            font-weight: bold; 
-            color: #60a5fa; 
+        .link-cell a {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+        .link-cell a:hover {
+            color: #93c5fd;
         }
 
-        /* Mobile improvements */
-        @media (max-width: 768px) {
-            table { min-width: 700px; }
-            th, td { padding: 12px 8px; }
+        .notes { 
+            min-width: 380px; 
+            white-space: normal !important; 
         }
 
         footer {
             text-align: center;
-            padding: 30px 20px;
+            padding: 25px;
             color: #888;
+            font-size: 0.95rem;
             background: #111;
-            border-top: 1px solid #333;
+        }
+
+        @media (max-width: 768px) {
+            table { min-width: 950px; }
+            th, td { padding: 10px 6px; font-size: 0.95rem; }
+            .notes { min-width: 260px; }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Fragrance Layers</h1>
+        <h1>Top 10 Fragrances</h1>
         <div class="nav">
             <div class="hamburger" onclick="toggleMenu()">
                 <span></span>
@@ -127,16 +139,20 @@
             </div>
         </div>
     </header>
-
+    
     <div class="table-wrapper">
-        <table id="layers-table">
+        <table id="fragrance-table">
             <thead>
                 <tr>
-                    <th>Fragrance 1</th>
-                    <th>Fragrance 2</th>
-                    <th>Ratio</th>
-                    <th>My Rating</th>
-                    <th>Comments</th>
+                    <th>House</th>
+                    <th>Name</th>
+                    <th>Rating</th>
+                    <th>Hours</th>
+                    <th>Silliage</th>
+                    <th>Genre</th>
+                    <th>Perfumer</th>
+                    <th>Link</th>
+                    <th>Notes / Comments</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -144,10 +160,12 @@
     </div>
 
     <footer id="footer">
-        Loading layers...
+        Loading Top 10...
     </footer>
 
     <script>
+        let fragrances = [];
+
         function cleanValue(val) {
             if (val === null || val === undefined || val === '' || val === '?') {
                 return 'N/A';
@@ -155,9 +173,9 @@
             return val;
         }
 
-        async function loadLayers() {
+        async function loadCSV() {
             try {
-                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1331568544&single=true&output=csv";
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=146247773&single=true&output=csv";
                 
                 const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
                 
@@ -171,8 +189,8 @@
                     header: true,
                     skipEmptyLines: true,
                     complete: (result) => {
-                        const data = result.data
-                            .filter(row => row['Fragrance 1'] && row['Fragrance 1'].trim())
+                        fragrances = result.data
+                            .filter(row => row.Name && row.Name.trim())
                             .map(row => {
                                 Object.keys(row).forEach(key => {
                                     if (typeof row[key] === 'string') row[key] = row[key].trim();
@@ -180,27 +198,47 @@
                                 return row;
                             });
                         
-                        const tbody = document.querySelector('#layers-table tbody');
-                        tbody.innerHTML = data.map(row => `
-                            <tr>
-                                <td>${cleanValue(row['Fragrance 1'])}</td>
-                                <td>${cleanValue(row['Fragrance 2'])}</td>
-                                <td class="ratio">${cleanValue(row.Ratio)}</td>
-                                <td>${cleanValue(row.Rating)}</td>
-                                <td>${cleanValue(row.Notes)}</td>
-                            </tr>
-                        `).join('');
-                        
-                        document.getElementById('footer').innerHTML = `
-                            <div><strong>${data.length}</strong> layer combinations</div>
-                            <div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">My Fragrance Collection</div>
-                        `;
+                        console.log("✅ Loaded", fragrances.length, "top fragrances");
+                        renderTable(fragrances);
+                        updateFooter();
                     }
                 });
             } catch (e) {
                 console.error("Load error:", e);
                 document.getElementById('footer').innerHTML = `<strong style="color:#ff6666;">Error loading Google Sheet</strong><br><small>${e.message}</small>`;
             }
+        }
+
+        function renderTable(data) {
+            const tbody = document.querySelector('#fragrance-table tbody');
+            let html = '';
+            for (let i = 0; i < data.length; i++) {
+                const f = data[i];
+                const link = cleanValue(f.Link || f.URL || f['Link'] || f['URL']);
+                const linkHtml = (link && link !== 'N/A' && link !== '')
+                    ? `<a href="${link}" target="_blank" rel="noopener">🔗 Link</a>` 
+                    : 'N/A';
+                
+                html += '<tr>' +
+                    '<td>' + cleanValue(f.House) + '</td>' +
+                    '<td><strong>' + cleanValue(f.Name) + '</strong></td>' +
+                    '<td>' + cleanValue(f.Rating) + '</td>' +
+                    '<td>' + cleanValue(f['Hours of Performance']) + '</td>' +
+                    '<td>' + cleanValue(f.Silliage) + '</td>' +
+                    '<td>' + cleanValue(f.Genre) + '</td>' +
+                    '<td>' + cleanValue(f.Perfumer) + '</td>' +
+                    '<td class="link-cell">' + linkHtml + '</td>' +
+                    '<td class="notes">' + cleanValue(f.Notes) + ' <strong>' + cleanValue(f.Comments) + '</strong></td>' +
+                    '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function updateFooter(filteredData = null) {
+            const data = filteredData || fragrances;
+            document.getElementById('footer').innerHTML = `
+                <strong>${data.length}</strong> top fragrances
+            `;
         }
 
         function toggleMenu() {
@@ -213,7 +251,7 @@
             }
         });
 
-        window.onload = loadLayers;
+        window.onload = loadCSV;
     </script>
 </body>
 </html>
