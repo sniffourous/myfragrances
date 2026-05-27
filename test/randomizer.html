@@ -24,53 +24,20 @@
         }
         h1 { margin: 0; font-size: 2.2rem; }
 
-        .nav {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-        }
-        .hamburger {
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            padding: 8px;
-        }
-        .hamburger span {
-            width: 28px;
-            height: 3px;
-            background: #60a5fa;
-            margin: 4px 0;
-            transition: 0.3s;
-        }
+        .nav { position: absolute; top: 20px; left: 20px; }
+        .hamburger { display: flex; flex-direction: column; cursor: pointer; padding: 8px; }
+        .hamburger span { width: 28px; height: 3px; background: #60a5fa; margin: 4px 0; transition: 0.3s; }
+
         .menu {
-            display: none;
-            position: absolute;
-            top: 65px;
-            left: 20px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px 0;
-            min-width: 180px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            z-index: 1000;
+            display: none; position: absolute; top: 65px; left: 20px;
+            background: #1a1a1a; border: 1px solid #333; border-radius: 8px;
+            padding: 12px 0; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1000;
         }
-        .menu a {
-            display: block;
-            padding: 12px 20px;
-            color: #e0e0e0;
-            text-decoration: none;
-        }
-        .menu a:hover {
-            background: #0066cc;
-            color: white;
-        }
+        .menu a { display: block; padding: 12px 20px; color: #e0e0e0; text-decoration: none; }
+        .menu a:hover { background: #0066cc; color: white; }
         .menu.active { display: block; }
 
-        .controls {
-            text-align: center;
-            padding: 15px 20px;
-        }
+        .controls { text-align: center; padding: 15px 20px; }
         select {
             padding: 12px 20px;
             font-size: 1.1rem;
@@ -96,29 +63,15 @@
             border-radius: 16px;
             padding: 30px 20px;
             text-align: center;
-            min-height: 380px;
+            min-height: 400px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
-        .card-title {
-            font-size: 1.35rem;
-            color: #60a5fa;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .house {
-            font-size: 1.3rem;
-            color: #aaa;
-        }
-
-        .name {
-            font-size: 2.3rem;
-            color: #60a5fa;
-            margin: 12px 0;
-        }
+        .card-title { font-size: 1.35rem; color: #60a5fa; margin-bottom: 20px; font-weight: 600; }
+        .house { font-size: 1.3rem; color: #aaa; }
+        .name { font-size: 2.3rem; color: #60a5fa; margin: 12px 0; }
 
         button {
             background: #0066cc;
@@ -132,6 +85,253 @@
             display: block;
         }
 
-        .count {
-            margin-top: 20px;
-            font-size: 1rem;
+        .count { margin-top: 20px; font-size: 1rem; color: #60a5fa; }
+        .wear-stat { margin: 5px 0; font-size: 1.05rem; color: #ccc; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Randomizer</h1>
+        <div class="nav">
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span><span></span><span></span>
+            </div>
+            <div class="menu" id="menu">
+                <a href="index.html">Home</a>
+                <a href="layers.html">Layers</a>
+                <a href="nowwearing.html">Now Wearing</a>
+                <a href="top.html">Top Fragrances</a>
+                <a href="randomizer.html">Randomizer</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <select id="season-filter" onchange="randomizeAll()">
+            <option value="Everything">🌍 Show Me Any Season</option>
+            <option value="Any">🌡️ Any Season Only</option>
+            <option value="Hot">☀️ Hot</option>
+            <option value="Cold">❄️ Cold</option>
+            <option value="Hot+Any">☀️ Hot + Any</option>
+            <option value="Cold+Any">❄️ Cold + Any</option>
+        </select>
+    </div>
+
+    <div style="text-align:center;">
+        <button onclick="randomizeAll()">🎲 Randomize</button>
+    </div>
+
+    <div class="cards-container" id="cards-container"></div>
+
+    <script>
+        let fragrances = [];
+        let nowWearingData = [];
+        let genreMaxRatings = {};
+        let currentSeasonFilter = 'Everything';
+
+        async function loadCSV() {
+            try {
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                const text = await res.text();
+
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (result) => {
+                        fragrances = result.data
+                            .filter(row => row.Name && row.Name.trim())
+                            .map(row => {
+                                Object.keys(row).forEach(key => {
+                                    if (typeof row[key] === 'string') row[key] = row[key].trim();
+                                });
+                                return row;
+                            });
+
+                        calculateGenreMaxRatings();
+                        loadNowWearingCSV();
+                    }
+                });
+            } catch (e) {
+                console.error(e);
+                document.getElementById('cards-container').innerHTML = `<p style="color:#ff6666; text-align:center;">Error loading collection</p>`;
+            }
+        }
+
+        async function loadNowWearingCSV() {
+            try {
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=775413918&single=true&output=csv";
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+                const text = await res.text();
+
+                Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (result) => {
+                        nowWearingData = result.data
+                            .filter(row => row.Date && row.Name)
+                            .map(row => {
+                                Object.keys(row).forEach(key => {
+                                    if (typeof row[key] === 'string') row[key] = row[key].trim();
+                                });
+                                return row;
+                            });
+
+                        createAllCards();
+                        randomizeAll();
+                    }
+                });
+            } catch (e) {
+                console.error("Now Wearing load failed:", e);
+                createAllCards();
+                randomizeAll();
+            }
+        }
+
+        function getFragranceWearStats(house, name) {
+            if (!nowWearingData || nowWearingData.length === 0) return null;
+
+            const matches = nowWearingData.filter(row => 
+                String(row.Brand || row.House || '').toLowerCase() === String(house || '').toLowerCase() &&
+                String(row.Name || '').toLowerCase() === String(name || '').toLowerCase()
+            );
+
+            if (matches.length === 0) return null;
+
+            const latest = matches[0];
+
+            return {
+                lastWorn: latest.Date || '—',
+                rating: latest.Rating || '?',
+                month: parseInt(latest.Month) || 0,
+                year: parseInt(latest.Year) || 0,
+                total: parseInt(latest.Total) || 0
+            };
+        }
+
+        function calculateGenreMaxRatings() {
+            genreMaxRatings = {};
+            fragrances.forEach(row => {
+                const genre = (row.Genre || '').trim();
+                if (!genre) return;
+                const rating = parseFloat(row.Rating);
+                if (isNaN(rating)) return;
+                if (!genreMaxRatings[genre] || rating > genreMaxRatings[genre]) {
+                    genreMaxRatings[genre] = rating;
+                }
+            });
+        }
+
+        function matchesSeason(row, filter) {
+            if (filter === 'Everything') return true;
+            const seasons = (row.Seasons || '').toLowerCase();
+            if (filter === 'Any') return seasons.includes('any');
+            if (filter === 'Hot') return seasons.includes('hot');
+            if (filter === 'Cold') return seasons.includes('cold');
+            if (filter === 'Hot+Any') return seasons.includes('hot') || seasons.includes('any');
+            if (filter === 'Cold+Any') return seasons.includes('cold') || seasons.includes('any');
+            return true;
+        }
+
+        function getFilteredFragrances(key) {
+            let baseList = [];
+
+            if (key === 'bangers') {
+                baseList = fragrances.filter(row => parseFloat(row.Rating) > 8.5);
+            } else if (key === 'all') {
+                baseList = fragrances;
+            } else if (key === 'unrated') {
+                baseList = fragrances.filter(row => !row.Rating || row.Rating === '0' || row.Rating === '0.0');
+            } else {
+                const maxRating = genreMaxRatings[key];
+                if (maxRating) {
+                    const threshold = maxRating - 2;
+                    baseList = fragrances.filter(row => row.Genre === key && parseFloat(row.Rating) > threshold);
+                }
+            }
+
+            return baseList.filter(row => matchesSeason(row, currentSeasonFilter));
+        }
+
+        function createAllCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+
+            container.appendChild(createCardElement('Only Bangers', 'bangers'));
+            container.appendChild(createCardElement('All Fragrances', 'all'));
+            container.appendChild(createCardElement('Unrated Fragrances', 'unrated'));
+
+            Object.keys(genreMaxRatings).sort().forEach(genre => {
+                container.appendChild(createCardElement(genre, genre));
+            });
+        }
+
+        function createCardElement(title, key) {
+            const card = document.createElement('div');
+            card.className = 'random-card';
+            card.id = `card-${key.replace(/\s+/g, '-')}`;
+            return card;
+        }
+
+        function updateCard(key, fragrance, count) {
+            const card = document.getElementById(`card-${key.replace(/\s+/g, '-')}`);
+            if (!card) return;
+
+            const stats = getFragranceWearStats(fragrance.House, fragrance.Name);
+
+            let wearHTML = '';
+            if (stats) {
+                wearHTML = `
+                    <div class="wear-stat"><strong>Latest Rating:</strong> ${stats.rating}</div>
+                    <div class="wear-stat"><strong>Last Worn:</strong> ${stats.lastWorn}</div>
+                    <div class="wear-stat"><strong>Worn this month:</strong> ${stats.month}</div>
+                    <div class="wear-stat"><strong>Worn this year:</strong> ${stats.year}</div>
+                    <div class="wear-stat"><strong>Total wears:</strong> ${stats.total}</div>
+                `;
+            }
+
+            card.innerHTML = `
+                <div class="card-title">${key === 'bangers' ? 'Only Bangers' : key === 'all' ? 'All Fragrances' : key === 'unrated' ? 'Unrated Fragrances' : key}</div>
+                <div class="house">${fragrance.House || ''}</div>
+                <div class="name">${fragrance.Name || ''}</div>
+                <div style="margin:20px 0; font-size:1.2rem; color:#aaa;">
+                    <strong>Rating:</strong> ${fragrance.Rating || '?'} | 
+                    <strong>Hours:</strong> ${fragrance['Hours of Performance'] || '?'} | 
+                    <strong>Sillage:</strong> ${fragrance.Silliage || '?'}
+                </div>
+                ${fragrance.Genre ? `<div><strong>Genre:</strong> ${fragrance.Genre}</div>` : ''}
+                ${fragrance.Seasons ? `<div><strong>Season:</strong> ${fragrance.Seasons}</div>` : ''}
+                ${fragrance.Perfumer ? `<div><strong>Perfumer:</strong> ${fragrance.Perfumer}</div>` : ''}
+                ${wearHTML}
+                <div class="count">🎲 ${count} qualifying</div>
+            `;
+        }
+
+        function randomizeAll() {
+            currentSeasonFilter = document.getElementById('season-filter').value;
+            const keys = ['bangers', 'all', 'unrated', ...Object.keys(genreMaxRatings)];
+
+            keys.forEach(key => {
+                const filtered = getFilteredFragrances(key);
+                if (filtered.length === 0) {
+                    const card = document.getElementById(`card-${key.replace(/\s+/g, '-')}`);
+                    if (card) card.innerHTML = `<div class="card-title">${key === 'bangers' ? 'Only Bangers' : key}</div><p style="color:#ffcc66;">No matching fragrances</p>`;
+                    return;
+                }
+                const random = filtered[Math.floor(Math.random() * filtered.length)];
+                updateCard(key, random, filtered.length);
+            });
+        }
+
+        function toggleMenu() {
+            document.getElementById('menu').classList.toggle('active');
+        }
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.nav')) document.getElementById('menu').classList.remove('active');
+        });
+
+        window.onload = loadCSV;
+    </script>
+</body>
+</html>
