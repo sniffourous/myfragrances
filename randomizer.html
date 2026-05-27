@@ -129,6 +129,13 @@
         let genreMaxRatings = {};
         let currentSeasonFilter = 'Everything';
 
+        function cleanValue(val) {
+            if (val === null || val === undefined || val === '' || val === '?') {
+                return 'N/A';
+            }
+            return val;
+        }
+
         async function loadCSV() {
             try {
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
@@ -201,8 +208,8 @@
             const latest = matches[0];
 
             return {
-                lastWorn: latest.Date || '—',
-                rating: latest.Rating || '?',
+                lastWorn: cleanValue(latest.Date),
+                rating: cleanValue(latest.Rating),
                 month: parseInt(latest.Month) || 0,
                 year: parseInt(latest.Year) || 0,
                 total: parseInt(latest.Total) || 0
@@ -292,12 +299,12 @@
 
             card.innerHTML = `
                 <div class="card-title">${key === 'bangers' ? 'Only Bangers' : key === 'all' ? 'All Fragrances' : key === 'unrated' ? 'Unrated Fragrances' : key}</div>
-                <div class="house">${fragrance.House || ''}</div>
-                <div class="name">${fragrance.Name || ''}</div>
+                <div class="house">${cleanValue(fragrance.House)}</div>
+                <div class="name">${cleanValue(fragrance.Name)}</div>
                 <div style="margin:20px 0; font-size:1.2rem; color:#aaa;">
-                    <strong>Rating:</strong> ${fragrance.Rating || '?'} | 
-                    <strong>Hours:</strong> ${fragrance['Hours of Performance'] || '?'} | 
-                    <strong>Sillage:</strong> ${fragrance.Silliage || '?'}
+                    <strong>Rating:</strong> ${cleanValue(fragrance.Rating)} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                    <strong>Hours:</strong> ${cleanValue(fragrance['Hours of Performance'])} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                    <strong>Sillage:</strong> ${cleanValue(fragrance.Silliage)}
                 </div>
                 ${fragrance.Genre ? `<div><strong>Genre:</strong> ${fragrance.Genre}</div>` : ''}
                 ${fragrance.Seasons ? `<div><strong>Season:</strong> ${fragrance.Seasons}</div>` : ''}

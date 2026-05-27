@@ -229,6 +229,13 @@
         let currentGenres = new Set();
         let sortState = {};
 
+        function cleanValue(val) {
+            if (val === null || val === undefined || val === '' || val === '?') {
+                return 'N/A';
+            }
+            return val;
+        }
+
         async function loadCSV() {
             try {
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRU5S6orMQ6ZMdAkt8lFoFgaSAd9hfM1F9BMipKg1pxxjgxNfIczP5j598EwO8TkqG3yN60u9IjKGrN/pub?gid=1371140242&single=true&output=csv";
@@ -292,15 +299,15 @@
             for (let i = 0; i < data.length; i++) {
                 const f = data[i];
                 html += '<tr>' +
-                    '<td>' + (f.House || '') + '</td>' +
-                    '<td><strong>' + (f.Name || '') + '</strong></td>' +
-                    '<td>' + (f.Rating || '') + '</td>' +
-                    '<td>' + (f['Hours of Performance'] || '') + '</td>' +
-                    '<td>' + (f.Silliage || '') + '</td>' +
-                    '<td>' + (f.Genre || '') + '</td>' +
-                    '<td>' + (f.Seasons || '') + '</td>' +
-                    '<td>' + (f.Size || '') + '</td>' +
-                    '<td class="notes">' + (f.Notes || '') + ' <strong>' + (f.Comments || '') + '</strong></td>' +
+                    '<td>' + cleanValue(f.House) + '</td>' +
+                    '<td><strong>' + cleanValue(f.Name) + '</strong></td>' +
+                    '<td>' + cleanValue(f.Rating) + '</td>' +
+                    '<td>' + cleanValue(f['Hours of Performance']) + '</td>' +
+                    '<td>' + cleanValue(f.Silliage) + '</td>' +
+                    '<td>' + cleanValue(f.Genre) + '</td>' +
+                    '<td>' + cleanValue(f.Seasons) + '</td>' +
+                    '<td>' + cleanValue(f.Size) + '</td>' +
+                    '<td class="notes">' + cleanValue(f.Notes) + ' <strong>' + cleanValue(f.Comments) + '</strong></td>' +
                     '</tr>';
             }
             tbody.innerHTML = html;

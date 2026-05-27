@@ -36,7 +36,6 @@
         .menu a:hover { background: #0066cc; color: white; }
         .menu.active { display: block; }
 
-        /* Compact Floating Footer */
         #wear-stats-footer {
             position: fixed;
             bottom: 0;
@@ -64,7 +63,7 @@
         .table-wrapper { 
             padding: 20px; 
             overflow-x: auto; 
-            padding-bottom: 120px; /* Space for footer */
+            padding-bottom: 120px;
         }
         table { 
             min-width: 1000px; 
@@ -125,7 +124,6 @@
         </table>
     </div>
 
-    <!-- Compact Floating Footer -->
     <div id="wear-stats-footer">
         <div class="title" id="footer-title">Tap a row for wear stats</div>
         <div class="stats" id="footer-stats"></div>
@@ -137,6 +135,13 @@
 
     <script>
         let currentData = [];
+
+        function cleanValue(val) {
+            if (val === null || val === undefined || val === '' || val === '?') {
+                return 'N/A';
+            }
+            return val;
+        }
 
         async function loadNowWearing() {
             try {
@@ -153,7 +158,9 @@
                             .filter(row => row.Date && row.Name)
                             .map(row => {
                                 Object.keys(row).forEach(key => {
-                                    if (typeof row[key] === 'string') row[key] = row[key].trim();
+                                    if (typeof row[key] === 'string') {
+                                        row[key] = row[key].trim();
+                                    }
                                 });
                                 return row;
                             })
@@ -174,12 +181,12 @@
             const tbody = document.querySelector('#nowwearing-table tbody');
             tbody.innerHTML = currentData.map((row, index) => `
                 <tr data-index="${index}">
-                    <td class="date">${row.Date || ''}</td>
-                    <td>${row.Brand || ''}</td>
-                    <td><strong>${row.Name || ''}</strong></td>
-                    <td class="rating">${row.Rating || ''}</td>
-                    <td class="notes">${row.Usage || ''}</td>
-                    <td class="notes">${row.Notes || ''}</td>
+                    <td class="date">${cleanValue(row.Date)}</td>
+                    <td>${cleanValue(row.Brand)}</td>
+                    <td><strong>${cleanValue(row.Name)}</strong></td>
+                    <td class="rating">${cleanValue(row.Rating)}</td>
+                    <td class="notes">${cleanValue(row.Usage)}</td>
+                    <td class="notes">${cleanValue(row.Notes)}</td>
                 </tr>
             `).join('');
 
@@ -195,14 +202,14 @@
             const index = parseInt(rowElement.dataset.index);
             const row = currentData[index];
 
-            document.getElementById('footer-title').textContent = `${row.Brand} — ${row.Name}`;
+            document.getElementById('footer-title').textContent = `${cleanValue(row.Brand)} — ${cleanValue(row.Name)}`;
 
             document.getElementById('footer-stats').innerHTML = `
-                Latest Rating: <strong>${row.Rating || '?'}</strong> • 
-                Last Worn: <strong>${row.Date}</strong><br>
-                This Month: <strong>${row.Month || 0}</strong> • 
-                This Year: <strong>${row.Year || 0}</strong> • 
-                Total: <strong>${row.Total || 0}</strong>
+                Latest Rating: <strong>${cleanValue(row.Rating)}</strong> • 
+                Last Worn: <strong>${cleanValue(row.Date)}</strong><br>
+                This Month: <strong>${cleanValue(row.Month)}</strong> • 
+                This Year: <strong>${cleanValue(row.Year)}</strong> • 
+                Total: <strong>${cleanValue(row.Total)}</strong>
             `;
         }
 
