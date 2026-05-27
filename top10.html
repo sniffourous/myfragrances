@@ -74,7 +74,7 @@
             overflow-y: auto;
         }
         table { 
-            min-width: 1250px; 
+            min-width: 1100px; 
             border-collapse: collapse; 
             background: #111; 
             width: 100%;
@@ -101,7 +101,7 @@
         }
 
         .notes { 
-            min-width: 380px; 
+            min-width: 420px; 
             white-space: normal !important; 
         }
 
@@ -114,9 +114,9 @@
         }
 
         @media (max-width: 768px) {
-            table { min-width: 950px; }
+            table { min-width: 850px; }
             th, td { padding: 10px 6px; font-size: 0.95rem; }
-            .notes { min-width: 260px; }
+            .notes { min-width: 280px; }
         }
     </style>
 </head>
@@ -147,12 +147,9 @@
                     <th>House</th>
                     <th>Name</th>
                     <th>Rating</th>
-                    <th>Hours</th>
-                    <th>Silliage</th>
-                    <th>Genre</th>
-                    <th>Perfumer</th>
+                    <th>Usage</th>
+                    <th>Notes</th>
                     <th>Link</th>
-                    <th>Notes / Comments</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -214,6 +211,8 @@
             let html = '';
             for (let i = 0; i < data.length; i++) {
                 const f = data[i];
+                
+                // Link handling
                 const link = cleanValue(f.Link || f.URL || f['Link'] || f['URL']);
                 const linkHtml = (link && link !== 'N/A' && link !== '')
                     ? `<a href="${link}" target="_blank" rel="noopener">🔗 Link</a>` 
@@ -223,21 +222,17 @@
                     '<td>' + cleanValue(f.House) + '</td>' +
                     '<td><strong>' + cleanValue(f.Name) + '</strong></td>' +
                     '<td>' + cleanValue(f.Rating) + '</td>' +
-                    '<td>' + cleanValue(f['Hours of Performance']) + '</td>' +
-                    '<td>' + cleanValue(f.Silliage) + '</td>' +
-                    '<td>' + cleanValue(f.Genre) + '</td>' +
-                    '<td>' + cleanValue(f.Perfumer) + '</td>' +
-                    '<td class="link-cell">' + linkHtml + '</td>' +
+                    '<td>' + cleanValue(f.Usage || f['Hours of Performance'] || f.Hours) + '</td>' +
                     '<td class="notes">' + cleanValue(f.Notes) + ' <strong>' + cleanValue(f.Comments) + '</strong></td>' +
+                    '<td class="link-cell">' + linkHtml + '</td>' +
                     '</tr>';
             }
             tbody.innerHTML = html;
         }
 
-        function updateFooter(filteredData = null) {
-            const data = filteredData || fragrances;
+        function updateFooter() {
             document.getElementById('footer').innerHTML = `
-                <strong>${data.length}</strong> top fragrances
+                <strong>${fragrances.length}</strong> top fragrances
             `;
         }
 
